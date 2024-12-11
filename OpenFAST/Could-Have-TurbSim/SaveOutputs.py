@@ -6,14 +6,15 @@ import shutil
 openfast_executable = "openfast_x64.exe"
 turbsim_executable = 'TurbSim_x64.exe'
 output_directory = "../4_Results"  # Directory to store results
-num_simulations = 5  # Number of simulations to run
-min_speed = 10
+num_simulations = 10 # Number of simulations to run
+min_speed = 5
 max_speed = 25
-speeds = np.arange(min_speed, max_speed, num_simulations)
+speeds = np.linspace(min_speed, max_speed, num_simulations)
 
 # Loop to run simulations
 for i in speeds:
     #Change simulation input
+    s = round(i, 4)
     shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input.inp", "1_Configuration/Inflow_files/TurbSim_input_temp.inp")
     with open("1_Configuration/Inflow_files/TurbSim_input_temp.inp", 'r') as wind_file:
         lines = wind_file.readlines()
@@ -28,7 +29,7 @@ for i in speeds:
     # Write the updated lines back to the file
     with open("1_Configuration/Inflow_files/TurbSim_input_temp.inp", "w") as file:
         file.writelines(lines)
-    shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.inp", f"4_Results/Input/WS_Sim_{i}.inp")
+    shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.inp", f"4_Results/Input/WS_Sim_{s}.inp")
 
     turbsim_input = "1_Configuration/Inflow_files/TurbSim_input_temp.inp"
     # Run Turbsim
@@ -37,10 +38,10 @@ for i in speeds:
             [turbsim_executable, turbsim_input], 
             check=True
         )
-        print(f"TurbSim field {i} generated successfully.")
+        print(f"TurbSim field {s} generated successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error running simulation {i}: {e}")
-    shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.bts", f"4_Results/Input/WS_Sim_{i}.bts")
+    shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.bts", f"4_Results/Input/WS_Sim_{s}.bts")
 
     # Define input/output file paths
     simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"
@@ -55,4 +56,4 @@ for i in speeds:
     except subprocess.CalledProcessError as e:
         print(f"Error running simulation {i}: {e}")
     
-    shutil.copy("1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.out", f"4_Results/Output/Sim_WS_{i}.out")
+    shutil.copy("1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.out", f"4_Results/Output/Sim_WS_{s}.out")

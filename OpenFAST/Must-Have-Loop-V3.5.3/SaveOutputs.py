@@ -5,10 +5,10 @@ import shutil
 # Configuration
 openfast_executable = "openfast_x64.exe"
 output_directory = "../4_Results"  # Directory to store results
-num_simulations = 5  # Number of simulations to run
+num_simulations = 50  # Number of simulations to run
 min_speed = 5
 max_speed = 25
-speeds = np.arange(min_speed, max_speed, num_simulations)
+speeds = np.linspace(min_speed, max_speed, num_simulations)
 
 # Loop to run simulations
 for i in speeds:

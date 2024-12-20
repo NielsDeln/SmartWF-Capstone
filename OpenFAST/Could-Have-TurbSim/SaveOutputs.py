@@ -13,7 +13,7 @@ speeds = np.linspace(min_speed, max_speed, num_simulations)
 
 # Loop to run simulations
 for i in speeds:
-    #Change simulation input
+    #Change simulation input if Turbsim
     s = round(i, 4)
     shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input.inp", "1_Configuration/Inflow_files/TurbSim_input_temp.inp")
     with open("1_Configuration/Inflow_files/TurbSim_input_temp.inp", 'r') as wind_file:
@@ -43,7 +43,7 @@ for i in speeds:
         print(f"Error running simulation {i}: {e}")
     shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.bts", f"4_Results/Input/WS_Sim_{s}.bts")
 
-    # Define input/output file paths
+    # Define input/output file paths of OpenFast
     simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"
 
     # Run OpenFAST

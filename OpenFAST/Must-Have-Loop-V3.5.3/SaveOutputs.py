@@ -14,7 +14,7 @@ wind_speeds = np.arange(min_speed, max_speed+speed_step, speed_step)
 min_std = 0.
 max_std = 2.5
 std_step = 0.25
-stdevs = np.arange(min_speed, max_std+std_step, std_step)
+stdevs = np.arange(min_std, max_std+std_step, std_step)
 
 repetition = 0
 # Loop to run simulations
@@ -29,7 +29,7 @@ for std in stdevs:
                 wind_file.write(f"{speed}    ")
                 for n in range(7):
                     wind_file.write("0    ")
-        shutil.copyfile("1_Configuration/Inflow_files/temp_ramp_wind.dat", f"{output_directory}/Inputs/w{wind:1.f}_s{std:2.f}_{repetition}_ms_in.dat")
+        shutil.copyfile("1_Configuration/Inflow_files/temp_ramp_wind.dat", f"{output_directory}/Inputs/w{wind:1.4f}_s{std:2.2f}_{repetition}_ms_in.dat")
 
         # Define input/output file paths
         simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"

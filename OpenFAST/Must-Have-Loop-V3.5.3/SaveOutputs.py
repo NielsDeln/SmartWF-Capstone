@@ -4,36 +4,44 @@ import shutil
 
 # Configuration
 openfast_executable = "openfast_x64.exe"
-output_directory = "../4_Results"  # Directory to store results
-num_simulations = 50  # Number of simulations to run
+output_directory = "../../Must_Should_Dataset"  # Directory to store results
+
 min_speed = 5
 max_speed = 25
-speeds = np.linspace(min_speed, max_speed, num_simulations)
+speed_step = 0.1
+wind_speeds = np.arange(min_speed, max_speed+speed_step, speed_step)
 
+min_std = 0.
+max_std = 2.5
+std_step = 0.25
+stdevs = np.arange(min_speed, max_std+std_step, std_step)
+
+repetition = 0
 # Loop to run simulations
-for i in speeds:
-    #Change simulation input
-    shutil.copyfile("1_Configuration/Inflow_files/ramp_wind.dat", "1_Configuration/Inflow_files/temp_ramp_wind.dat")
-    with open("1_Configuration/Inflow_files/temp_ramp_wind.dat", 'a') as wind_file:
-        for t in np.arange(0, 600):
-            speed = np.random.normal(i, 0.2)
-            wind_file.write(f"\n{t}    ")
-            wind_file.write(f"{speed}    ")
-            for n in range(7):
-                wind_file.write("0    ")
-    shutil.copyfile("1_Configuration/Inflow_files/temp_ramp_wind.dat", f"4_Results/Input/WS_Sim_{i}.dat")
+for std in stdevs:
+    for wind in wind_speeds:
+        #Change simulation input
+        shutil.copyfile("1_Configuration/Inflow_files/ramp_wind.dat", "1_Configuration/Inflow_files/temp_ramp_wind.dat")
+        with open("1_Configuration/Inflow_files/temp_ramp_wind.dat", 'a') as wind_file:
+            for t in np.arange(0, 660):
+                speed = np.random.normal(wind, std)
+                wind_file.write(f"\n{t}    ")
+                wind_file.write(f"{speed}    ")
+                for n in range(7):
+                    wind_file.write("0    ")
+        shutil.copyfile("1_Configuration/Inflow_files/temp_ramp_wind.dat", f"{output_directory}/Inputs/w{wind:1.f}_s{std:2.f}_{repetition}_ms_in.dat")
 
-    # Define input/output file paths
-    simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"
+        # Define input/output file paths
+        simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"
 
-    # Run OpenFAST
-    try:
-        subprocess.run(
-            [openfast_executable, simulation_input],
-            check=True
-        )
-        print(f"Simulation {i} completed successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error running simulation {i}: {e}")
-    
-    shutil.copy("1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.out", f"4_Results/Output/Sim_WS_{i}.out")
+        # Run OpenFAST
+        try:
+            subprocess.run(
+                [openfast_executable, simulation_input],
+                check=True
+            )
+            print(f"Simulation {wind} completed successfully.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error running simulation {wind}: {e}")
+        
+        shutil.copy("1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.out", f"{output_directory}/'Outputs/w{wind:1.f}_s{std:2.f}_{repetition}_ms_out.out")

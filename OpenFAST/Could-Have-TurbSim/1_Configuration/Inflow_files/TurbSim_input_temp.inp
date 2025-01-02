@@ -39,7 +39,7 @@ default   ETMc            - IEC Extreme Turbulence Model "c" parameter [m/s]
 170.0     RefHt           - Height of the reference velocity (URef) [m]
 5.0     URef             - Mean (total) velocity at the reference height [m/s] (or "default" for JET velocity profile) [must be 1-hr mean for API model; otherwise is the mean over AnalysisTime seconds]
 default   ZJetMax         - Jet height [m] (used only for JET velocity profile, valid 70-490 m)
-0.2         PLExp           - Power law exponent [-] (or "default")
+0.0         PLExp           - Power law exponent [-] (or "default")
 default   Z0              - Surface roughness length [m] (or "default")
 
 --------Non-IEC Meteorological Boundary Conditions------------

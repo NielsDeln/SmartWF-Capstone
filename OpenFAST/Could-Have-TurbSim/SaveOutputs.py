@@ -16,10 +16,16 @@ wind_speeds = np.arange(min_speed, max_speed+speed_step, speed_step)
 #windshear set
 min_shear = 0
 max_shear = 0.3
-shear_step = 0.1
+shear_step = 0.03
 shear_coef = np.arange(min_shear, max_shear+shear_step, shear_step)
 
 repetition = 0
+delimiter = '    '
+
+turbsim_input = "1_Configuration/Inflow_files/TurbSim_input_temp.inp"
+# Define input/output file paths
+simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"
+
 # Loop to run simulations
 for wind in wind_speeds:
     for shear in shear_coef:
@@ -27,8 +33,6 @@ for wind in wind_speeds:
         shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input.inp", "1_Configuration/Inflow_files/TurbSim_input_temp.inp")
         with open("1_Configuration/Inflow_files/TurbSim_input_temp.inp", 'r') as wind_file:
             lines = wind_file.readlines()
-
-        delimiter = '    '
 
         # Replace the value for the matching parameter
         parts_wind = lines[39].strip().split(delimiter, maxsplit=2)
@@ -42,9 +46,8 @@ for wind in wind_speeds:
         # Write the updated lines back to the file
         with open("1_Configuration/Inflow_files/TurbSim_input_temp.inp", "w") as file:
             file.writelines(lines)
-        shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.inp", f"{output_directory}/Inputs/w{wind:1.4f}_s{shear:1.4f}_{repetition}_c_in.inp")
+        shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.inp", f"{output_directory}/Inputs/w{wind:1.2f}_s{shear:1.2f}_{repetition}_c_in.inp")
 
-        turbsim_input = "1_Configuration/Inflow_files/TurbSim_input_temp.inp"
         # Run Turbsim
         try:
             subprocess.run(
@@ -54,10 +57,7 @@ for wind in wind_speeds:
             print(f"TurbSim field {wind} generated successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error running simulation {wind}: {e}")
-        shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.bts", f"{output_directory}/Inputs/w{wind:1.4f}_s{shear:1.4f}_{repetition}_c_in.bts")
-
-        # Define input/output file paths
-        simulation_input = "1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.fst"
+        shutil.copyfile("1_Configuration/Inflow_files/TurbSim_input_temp.bts", f"{output_directory}/Inputs/w{wind:1.2f}_s{shear:1.2f}_{repetition}_c_in.bts")
 
         # Run OpenFAST
         try:
@@ -68,5 +68,5 @@ for wind in wind_speeds:
             print(f"Simulation {wind} completed successfully.")
         except subprocess.CalledProcessError as e:
             print(f"Error running simulation {wind}: {e}")
-        
-        shutil.copy("1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.out", f"{output_directory}/Outputs/w{wind:1.4f}_s{shear:1.4f}_{repetition}_c_in.out")
+
+        shutil.copy("1_Configuration\IEA-22MW-RWT\IEA-22-280-RWT-Monopile\IEA-22-280-RWT-Monopile.out", f"{output_directory}/Outputs/w{wind:1.2f}_s{shear:1.2f}_{repetition}_c_out.out")

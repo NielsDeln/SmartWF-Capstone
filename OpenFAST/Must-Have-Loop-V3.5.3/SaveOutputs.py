@@ -11,8 +11,8 @@ max_speed = 10
 speed_step = 0.1
 wind_speeds = np.arange(min_speed, max_speed+speed_step, speed_step)
 
-min_std = 1
-max_std = 1.5
+min_std = 0.75
+max_std = 0.75
 std_step = 0.25
 stdevs = np.arange(min_std, max_std+std_step, std_step)
 print(wind_speeds)

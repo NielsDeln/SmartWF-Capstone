@@ -8,7 +8,7 @@ from openfast_toolbox import FASTOutputFile
 from openfast_toolbox.postpro import equivalent_load
 
 # Read an openFAST output file 
-fastoutFilename = "../Must_Should_Dataset/Outputs/w14.5000_s0.50_0_ms_out.out"
+fastoutFilename = "../../Must_Should_Dataset/Outputs/w14.5000_s0.50_0_ms_out.out"
 df = FASTOutputFile(fastoutFilename).toDataFrame()
 
 # Compute equivalent load for one signal and Wohler slope 

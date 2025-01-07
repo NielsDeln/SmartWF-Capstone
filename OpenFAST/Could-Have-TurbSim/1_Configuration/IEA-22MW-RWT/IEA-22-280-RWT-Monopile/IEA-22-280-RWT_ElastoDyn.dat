@@ -118,7 +118,6 @@ True                   TabDelim    - Use tab delimiters in text tabular output f
 9                      NBlGages    - Number of blade nodes that have strain gages for output [0 to 9] (-)
 6, 11, 16, 21, 26, 31, 36, 41, 46 BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
-"Azimuth"
 "BldPitch1"
 "BldPitch2"
 "BldPitch3"
@@ -142,27 +141,5 @@ True                   TabDelim    - Use tab delimiters in text tabular output f
 "RootMyc2"
 "RootMxc3"
 "RootMyc3"
-"LSSGagMys"
-"LSSGagMzs"
-"LSSGagMxs"
-"LSSGagFys"
-"LSSGagFzs"
-"LSSGagFxs"
-"LSSTipMys"
-"LSSTipMzs"
-"TwrBsFxt"
-"TwrBsFyt"
-"TwrBsFzt"
-"TwrBsMxt"
-"TwrBsMyt"
-"TwrBsMzt"
-"YawBrFxp"
-"YawBrFyp"
-"YawBrFzp"
-"YawBrMxp"
-"YawBrMyp"
-"YawBrMzp"
-"YawBrTDxt"
-"YawBrTDyt"
 END of input file (the word "END" must appear in the first 3 columns of this last OutList line)
 ---------------------------------------------------------------------------------------

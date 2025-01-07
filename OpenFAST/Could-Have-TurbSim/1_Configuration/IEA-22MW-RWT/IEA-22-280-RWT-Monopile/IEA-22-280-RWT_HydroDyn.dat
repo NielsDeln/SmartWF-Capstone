@@ -146,5 +146,5 @@ False                  OutAll      - Output all user-specified member and joint 
 ES11.4e2               OutFmt      - Output format for numerical results (quoted string) [not checked for validity!]
 A11                    OutSFmt     - Output format for header strings (quoted string) [not checked for validity!]
 ---------------------- OUTPUT CHANNELS -----------------------------------------
-"Wave1Elev"               - Wave elevation at the WAMIT reference point (0,0)
+
 END of output channels and end of file. (the word "END" must appear in the first 3 columns of this line)

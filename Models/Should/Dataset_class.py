@@ -1,7 +1,7 @@
 
-import torch.utils.data as data
+from torch.utils.data import Dataset, DataLoader
 
-class Should_Dataset(data.Dataset):
+class Should_Dataset(Dataset):
     def __init__(self, data, labels, transforms=None) -> None:
         self.data = data
         self.labels = labels

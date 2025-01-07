@@ -13,7 +13,8 @@ class Should_LSTM(nn.Module):
                  hidden_size: int, 
                  num_layers: int=1, 
                  dropout: float=0., 
-                 regularization: str=None) -> None:
+                 regularization: str=None
+                 ) -> None:
         """
         Initializes the Should_LSTM class.
 
@@ -40,7 +41,7 @@ class Should_LSTM(nn.Module):
 
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=self.dropout)
 
-    def forward(self, x, h0=None, c0=None):
+    def forward(self, x, h0=None, c0=None) -> torch.Tensor:
         """
         Forward pass of the LSTM model.
 

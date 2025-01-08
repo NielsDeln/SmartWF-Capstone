@@ -76,7 +76,11 @@ input_data = torch.randn(batch_size, seq_len, input_channels, input_hight, input
 output = model(input_data)
 print("Output shape:", output.shape)  # Expected: (batch_size, seq_len, output_dim)
 
+#Calculate total number of learnable parameters
+total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f"Total learnable parameters: {total_params}")
 
+'''
 # Example Training
 # Hyperparameters
 num_epochs = 5
@@ -98,3 +102,4 @@ criterion = nn.MSELoss()  # Mean Squared Error for regression
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 train(model, dataloader, criterion, optimizer, num_epochs)
+'''

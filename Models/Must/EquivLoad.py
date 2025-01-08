@@ -3,9 +3,14 @@
 import os 
 import numpy as np
 import matplotlib.pyplot as plt 
+import pandas as pd
+import re
 
 from openfast_toolbox import FASTOutputFile
 from openfast_toolbox.postpro import equivalent_load
+
+columns = ['Windspeed', 'STDeV', 'Leq_x', 'Leq_y']
+must_df = pd.DataFrame(columns = columns)
 
 #Data directionary (For know this is an example of Julia's computer until we have all the data in a map)
 output_dir = r"C:\Users\Jwoon\Desktop\STDeV 1.0 outputs"
@@ -17,9 +22,22 @@ for filename in os.listdir(output_dir):
         file_path = os.path.join(output_dir, filename)
         df = FASTOutputFile(file_path).toDataFrame()
 
+        match = re.match(r"w(\d+\.\d+)_s(\d+\.\d+)_", filename)
+
         m = 1 # Wohler slope 
-        Leq = equivalent_load(df['Time_[s]'], df['RootMyc1_[kN-m]'], m=m) 
-        print('Leq ',Leq)
+        Leq_x = equivalent_load(df['Time_[s]'], df['RootMxb1_[kN-m]'], m=m) 
+        Leq_y = equivalent_load(df['Time_[s]'], df['RootMyb1_[kN-m]'], m=m) 
+
+        new_row = {
+        'Windspeed': match.group(1),
+        'STDeV': match.group(2),
+        'Leq_x': Leq_x,
+        'Leq_y': Leq_y}
+        
+        must_df.loc[len(must_df)] = [float(match.group(1)), float(match.group(2)), Leq_x, Leq_y]
+    
+must_df = must_df.sort_values(by='Windspeed', ascending=True)
+print(must_df)
 
 # Leq = equivalent_load(df['Time_[s]'], df['RootMyc1_[kN-m]'], m=m, method='fatpack') # requires package fatpack
 

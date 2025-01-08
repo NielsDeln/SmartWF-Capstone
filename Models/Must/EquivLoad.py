@@ -7,14 +7,19 @@ import matplotlib.pyplot as plt
 from openfast_toolbox import FASTOutputFile
 from openfast_toolbox.postpro import equivalent_load
 
-# Read an openFAST output file 
-fastoutFilename = "../../Must_Should_Dataset/Outputs/w14.5000_s0.50_0_ms_out.out"
-df = FASTOutputFile(fastoutFilename).toDataFrame()
+#Data directionary (For know this is an example of Julia's computer until we have all the data in a map)
+output_dir = r"C:\Users\Jwoon\Desktop\STDeV 1.0 outputs"
 
-# Compute equivalent load for one signal and Wohler slope 
-m = 1 # Wohler slope 
-Leq = equivalent_load(df['Time_[s]'], df['RootMyc1_[kN-m]'], m=m) 
-print('Leq ',Leq)
+# Loop through all files in the directory
+for filename in os.listdir(output_dir):
+
+        # Build the full file path
+        file_path = os.path.join(output_dir, filename)
+        df = FASTOutputFile(file_path).toDataFrame()
+
+        m = 1 # Wohler slope 
+        Leq = equivalent_load(df['Time_[s]'], df['RootMyc1_[kN-m]'], m=m) 
+        print('Leq ',Leq)
 
 # Leq = equivalent_load(df['Time_[s]'], df['RootMyc1_[kN-m]'], m=m, method='fatpack') # requires package fatpack
 

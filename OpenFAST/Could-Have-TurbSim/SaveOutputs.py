@@ -5,10 +5,10 @@ import shutil
 # Configuration
 openfast_executable = "openfast_x64.exe"
 turbsim_executable = 'TurbSim_x64.exe'
-output_directory = "../../../Could_Dataset"  # Directory to store results
+output_directory = "../../Could_Dataset"  # Directory to store results
 
 #windspeed set
-min_speed = 5.8
+min_speed = 9
 max_speed = 10
 speed_step = 0.1
 wind_speeds = np.arange(min_speed, max_speed+speed_step, speed_step)

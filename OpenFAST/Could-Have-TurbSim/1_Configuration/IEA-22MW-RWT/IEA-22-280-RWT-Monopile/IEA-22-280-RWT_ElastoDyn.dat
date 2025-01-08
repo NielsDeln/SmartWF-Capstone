@@ -119,16 +119,8 @@ True                   TabDelim    - Use tab delimiters in text tabular output f
 6, 11, 16, 21, 26, 31, 36, 41, 46 BldGagNd    - List of blade nodes that have strain gages [1 to BldNodes] (-) [unused if NBlGages=0]
                    OutList             - The next line(s) contains a list of output parameters.  See OutListParameters.xlsx for a listing of available output channels, (-)
 "BldPitch1"
-"BldPitch2"
-"BldPitch3"
-"OoPDefl1"
-"IPDefl1"
 "GenSpeed"
-"NacYaw"
 "RotSpeed"
-"RotThrust"
-"RotTorq"
-"RotPwr"
 "RootMxb1"
 "RootMyb1"
 "RootMxb2"

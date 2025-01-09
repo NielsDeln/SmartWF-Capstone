@@ -16,13 +16,13 @@ must_df = pd.DataFrame(columns = columns)
 # Julia
 output_dir = r"C:\Users\Jwoon\Desktop\STDeV 1.0 outputs"
 # Hugo
-output_dir = r"C:\Users\HugoP\Downloads\Must_Should_Dataset\Outputs"
+output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Dataset_complete\Outputs"
 
 
 counter = 0
 # Loop through all files in the directory
 for filename in os.listdir(output_dir):
-        if counter < 1000:
+        if counter < 2000 :
               
             # Build the full file path
             file_path = os.path.join(output_dir, filename)
@@ -51,7 +51,3 @@ must_df = must_df.sort_values(by='Windspeed', ascending=True)
 print(must_df)
 
 must_df.to_csv('DEL_must_model.csv', sep='\t', index=True, header=True)
-# Leq = equivalent_load(df['Time_[s]'], df['RootMyc1_[kN-m]'], m=m, method='fatpack') # requires package fatpack
-
-if __name__ == '__main__': 
-    plt.show()

@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import Dataset, DataLoader
 
 class Should_Dataset(Dataset):
@@ -8,6 +9,6 @@ class Should_Dataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.data)
-
-    def __getitem__(self, index: int) -> tuple:
+        
+    def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         return self.data[index], self.labels[index]

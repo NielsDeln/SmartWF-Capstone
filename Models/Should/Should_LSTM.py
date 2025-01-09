@@ -13,7 +13,6 @@ class Should_model(nn.Module):
                  hidden_size: int, 
                  num_layers: int=1, 
                  dropout: float=0., 
-                 regularization: str=None
                  ) -> None:
         """
         Initializes the Should_LSTM class.
@@ -28,16 +27,12 @@ class Should_model(nn.Module):
             Number of recurrent layers. E.g., setting num_layers=2 would mean stacking two LSTMs together to form a stacked LSTM, with the second LSTM taking in outputs of the first LSTM and computing the final results. Default: 1
         dropout: float
             If non-zero, introduces a Dropout layer on the outputs of each LSTM layer except the last layer, with dropout probability equal to dropout. Default: 0
-        regularization: str
-            Regularization method to use. Default: None
         """
         super(Should_model, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.dropout = dropout
-        if regularization is not None:
-            self.regularization = self.add_regularization(regularization)
 
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=self.dropout)
 
@@ -66,11 +61,3 @@ class Should_model(nn.Module):
 
         out, _ = self.lstm(x, (h0, c0))
         return out
-
-    def add_regularization(self, regularization: str):
-        if regularization == 'l1':
-            return nn.L1Loss()
-        elif regularization == 'l2':
-            return nn.MSELoss()
-        else:
-            return None

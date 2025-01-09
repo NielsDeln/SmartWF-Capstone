@@ -1,4 +1,10 @@
-from Models.Must.Neural_Network.utils import *
+import sys
+import os
+
+# Add the parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
+
+from Models.Must.Neural_Network._utils import *
 from Models.Must.Neural_Network.Must_Dataset_processing import *
 from Models.Must.Neural_Network.Must_FNN import *
 

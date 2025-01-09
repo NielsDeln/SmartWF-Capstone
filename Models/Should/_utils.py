@@ -260,6 +260,7 @@ def plot_inference(model: nn.Module,
         for data, target in dataset:
             data, target = data.to(device), target.to(device)
             output = model(data)
+            plt.figure()
             plt.plot(data, target, label='True')
             plt.plot(data, output, label='Predicted')
             plt.legend()

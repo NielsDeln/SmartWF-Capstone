@@ -4,7 +4,7 @@ import pandas as pd
 
 
 # making dataframe  
-df = pd.read_csv("DEL_must_model.csv", sep='\t')  
+df = pd.read_csv("..\DEL_must_model.csv", sep='\t')  
    
 # # output the dataframe 
 # print(df['Windspeed'])

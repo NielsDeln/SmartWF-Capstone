@@ -7,7 +7,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import mean_absolute_error
 
-must_df = pd.read_csv('DEL_must_model.csv', sep='\t')
+must_df = pd.read_csv('..\DEL_must_model.csv', sep='\t')
 print(must_df)
 
 y = must_df['Leq_x'].to_numpy()

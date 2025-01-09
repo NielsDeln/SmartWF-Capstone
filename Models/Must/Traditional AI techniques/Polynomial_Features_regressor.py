@@ -8,7 +8,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression, SGDRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-must_df = pd.read_csv("DEL_must_model_2.csv", sep='\t')
+must_df = pd.read_csv("..\DEL_must_model_2.csv", sep='\t')
 y = must_df['Leq_x'].to_numpy()
 X = must_df[['Windspeed', 'STDeV']].to_numpy()
 

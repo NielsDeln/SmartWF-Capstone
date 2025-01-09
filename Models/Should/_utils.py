@@ -14,7 +14,7 @@ def train_one_epoch(model: nn.Module,
                     dataset: Dataset, 
                     criterion: nn.modules.loss, 
                     optimizer: optim, 
-                    device: str='cpu'
+                    device: torch.device=torch.device('cpu')
                     ) -> float:
     """
     Trains the model for one epoch.
@@ -23,13 +23,13 @@ def train_one_epoch(model: nn.Module,
     -----------
     model: torch.nn.Module
         The model to train
-    dataloader: torch.utils.data.DataLoader
-        The dataloader containing the training data
+    dataset: Dataset
+        The training dataset
     criterion: torch.nn.modules.loss
         The loss function
     optimizer: torch.optim
         The optimizer
-    device: str
+    device: torch.device
         The device to use for training
 
     Returns:
@@ -47,7 +47,7 @@ def train_one_epoch(model: nn.Module,
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
-        if device != 'cpu':
+        if device != torch.device('cpu'):
             torch.cuda.empty_cache()
     return epoch_loss
 
@@ -57,7 +57,7 @@ def train(model: nn.Module,
           criterion: nn.modules.loss, 
           optimizer: optim, 
           n_epochs: int,
-          device: str='cpu',
+          device: torch.device=torch.device('cpu'),
           early_stopping: int=-1,
           print_freq: int=10
           ) -> tuple[nn.Module, list, list]:
@@ -69,14 +69,14 @@ def train(model: nn.Module,
     model: torch.nn.Module
         The model to train
     dataloader: torch.utils.data.DataLoader
-        The dataloader containing the training data
+        The dataloader containing the training and validation data
     criterion: torch.nn.modules.loss
         The loss function
     optimizer: torch.optim
         The optimizer
     n_epochs: int
         The number of epochs to train for
-    device: str
+    device: torch.device
         The device to use for training
     early_stopping: int
         Whether to use early stopping or not
@@ -90,8 +90,10 @@ def train(model: nn.Module,
     --------
     model: torch.nn.Module
         The trained model
-    best_loss: float
-        The best loss during training
+    train_loss_history: list
+        The history of training losses
+    val_loss_history: list
+        The history of validation losses
     """
     model.to(device)
 
@@ -111,21 +113,23 @@ def train(model: nn.Module,
 
         # Print the loss
         if epoch % print_freq == 0:
-            print(f'Epoch {epoch}: Training Loss {train_epoch_loss}, Validation Loss {val_epoch_loss}')
+            print(f'Epoch {epoch+1}/{n_epochs}:\n------------\nTraining Loss {train_epoch_loss}, Validation Loss {val_epoch_loss}')
 
         if val_epoch_loss < best_loss:
             best_loss = val_epoch_loss
-            torch.save(model.state_dict(), f'/Models/Should/Trained_Models/best_model{date.today()}.pt')
+            torch.save(model.state_dict(), f'/Models/Should/Trained_Models/best_model_{date.today()}.pt')
         
         # if early_stopping >= 0 and train_epoch_loss > best_loss:
         #     best_loss = train_epoch_loss
         #     break  
+    
+    return model, train_loss_history, val_loss_history
 
 
 def evaluate(model: nn.Module, 
              dataset: Dataset, 
              criterion: nn.modules.loss, 
-             device: str='cpu'
+             device: torch.device=torch.device('cpu')
              ) -> float:
     """
     Evaluates the model.
@@ -138,7 +142,7 @@ def evaluate(model: nn.Module,
         The dataloader containing the evaluation data
     criterion: torch.nn.modules.loss
         The loss function
-    device: str
+    device: torch.device
         The device to use for evaluation
     
     Returns:
@@ -148,10 +152,11 @@ def evaluate(model: nn.Module,
     """
     model.eval()
     loss = 0
-    for data, target in dataset:
-        data, target = data.to(device), target.to(device)
-        output = model(data)
-        loss += criterion(output, target).item()
+    with torch.no_grad():
+        for data, target in dataset:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            loss += criterion(output, target).item()
     return loss
 
 
@@ -180,3 +185,31 @@ def plot_losses(train_loss_history: Iterable, val_loss_history: Iterable) -> Non
     ax[1].legend()
 
     fig.show()
+
+
+def plot_inference(model: nn.Module, 
+                   dataset: Dataset, 
+                   device: torch.device=torch.device('cpu')
+                   ) -> None:
+    """
+    Plots the inference of the model.
+
+    Parameters:
+    -----------
+    model: torch.nn.Module
+        The model to evaluate
+    dataset: torch.utils.data.Dataset
+        The dataset to evaluate
+    device: torch.device
+        The device to use for evaluation
+    """
+    model.eval()
+    with torch.no_grad():
+        for data, target in dataset:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            plt.plot(data, target, label='True')
+            plt.plot(data, output, label='Predicted')
+            plt.legend()
+            plt.show()
+            break

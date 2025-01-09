@@ -10,7 +10,7 @@ input_directory = '../../../Could_Dataset/Inputs'
 data_list = []
 i = 0
 # Iterate through files in the directory
-for file in os.listdir(input_directory)[:400]:  # List all files in the directory
+for file in os.listdir(input_directory)[:100]:  # List all files in the directory
     if file.endswith('.bts'):  # Check if the file has a .bts extension
         file_path = os.path.join(input_directory, file)  # Create the full path
         TS = openfast_toolbox.io.TurbSimFile(file_path)  # Process the .bts file

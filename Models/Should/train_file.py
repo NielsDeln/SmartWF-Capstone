@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # Train the model
     n_epochs = 500
-    final_model, train_losses, validation_losses = train(model, 
+    trained_model, train_losses, validation_losses = train(model, 
                                                            dataloaders['train'], 
                                                            loss_fn, optimizer, 
                                                            n_epochs, 
@@ -55,9 +55,6 @@ if __name__ == "__main__":
                                                            early_stopping=10, 
                                                            print_freq=10,
                                                            )
-    
-    # Select the best model
-    trained_model = model.load_state_dict(torch.load(f'/Models/Should/Trained_Models/best_model_{date.today()}.pt'))
 
     # Plot the training and validation losses
     plot_losses(train_losses, validation_losses)

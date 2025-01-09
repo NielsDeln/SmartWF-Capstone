@@ -64,7 +64,7 @@ seq_len = 150               # Length of the input sequence
 batch_size = 1              # Batch size
 
 
-
+'''
 # Example usage
 # Instantiate the model
 model = WindTurbineLoadPredictor(input_channels, feature_dim, hidden_dim, output_dim, num_layers)
@@ -80,7 +80,7 @@ print("Output shape:", output.shape)  # Expected: (batch_size, seq_len, output_d
 total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print(f"Total learnable parameters: {total_params}")
 
-'''
+
 # Example Training
 # Hyperparameters
 num_epochs = 5

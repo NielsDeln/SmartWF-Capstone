@@ -10,6 +10,53 @@ from collections.abc import Iterable
 from datetime import date
 
 
+class EarlyStopping:
+    def __init__(self, patience: int=5, delta: float=0) -> None:
+        """
+        Initializes the EarlyStopping class.
+
+        Parameters:
+        -----------
+        patience: int
+            The number of epochs to wait to see an improvement in the loss
+            Default: 5
+        delta: float
+            Minimum change in the monitored quantity to qualify as an improvement
+            Default: 0
+        """
+        self.patience = patience
+        self.delta = delta
+        self.best_score: float | None = None
+        self.early_stop: bool = False
+        self.counter: int = 0
+
+    def __call__(self, val_loss: float, model: nn.Module) -> None:
+        """
+        Calls the EarlyStopping class.
+
+        Parameters:
+        -----------
+        val_loss: float
+            The validation loss
+        model: torch.nn.Module
+            The model to save if an improvement is seen
+        """
+        if self.best_score is None:
+            self.best_score = val_loss
+            self.best_model_state = model.state_dict()
+        elif val_loss > self.best_score - self.delta:
+            self.counter += 1
+            if self.counter >= self.patience:
+                self.early_stop = True
+        else:
+            self.best_score = val_loss
+            self.counter = 0
+            torch.save(model.state_dict(), f'/Models/Should/Trained_Models/best_model_{date.today()}.pt')
+
+    def load_best_model(self, model: nn.Module) -> None:
+        model.load_state_dict(torch.load(f'/Models/Should/Trained_Models/best_model_{date.today()}.pt'))
+
+
 def train_one_epoch(model: nn.Module, 
                     dataset: Dataset, 
                     criterion: nn.modules.loss, 
@@ -117,12 +164,17 @@ def train(model: nn.Module,
 
         if val_epoch_loss < best_loss:
             best_loss = val_epoch_loss
-            torch.save(model.state_dict(), f'/Models/Should/Trained_Models/best_model_{date.today()}.pt')
+            
         
-        # if early_stopping >= 0 and train_epoch_loss > best_loss:
-        #     best_loss = train_epoch_loss
-        #     break  
+        if early_stopping >= -1 and isinstance(early_stopping, int):
+            early_stopping(val_epoch_loss, model, patience=early_stopping)
+        elif early_stopping <= -1 or not isinstance(early_stopping, int):
+            raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
+        if early_stopping.early_stop:
+            print(f'Early stopping at epoch {epoch+1}')
+            break
     
+    early_stopping.load_best_model(model)
     return model, train_loss_history, val_loss_history
 
 

@@ -14,9 +14,9 @@ must_df = pd.DataFrame(columns = columns)
 
 #Data directionary (For know this is an example of Julia's computer until we have all the data in a map)
 # Julia
-output_dir = r"C:\Users\Jwoon\Desktop\STDeV 1.0 outputs"
+output_dir = r"C:\Users\Jwoon\Desktop\All must data"
 # Hugo
-output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Dataset_complete\Outputs"
+#output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Dataset_complete\Outputs"
 
 
 counter = 0

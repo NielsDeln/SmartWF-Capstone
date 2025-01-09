@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 
-class Should_LSTM(nn.Module):
+class Should_model(nn.Module):
     def __init__(self, 
                  input_size: int, 
                  hidden_size: int, 
@@ -31,7 +31,7 @@ class Should_LSTM(nn.Module):
         regularization: str
             Regularization method to use. Default: None
         """
-        super(Should_LSTM, self).__init__()
+        super(Should_model, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_layers = num_layers

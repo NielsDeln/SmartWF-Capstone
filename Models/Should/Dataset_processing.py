@@ -68,8 +68,8 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int) -
     df = df.apply(pd.to_numeric, errors='coerce')
 
     wind_index = [1, 4, 5, 6, 7, 8, 9, 10, 11]
-    wind_speeds = df.iloc[2:, wind_index].mean(axis=1)
-    moments = df.iloc[2:, 24:30]
+    wind_speeds = df.iloc[152:, wind_index].mean(axis=1)
+    moments = df.iloc[152:, 24:30]
 
     input = torch.tensor(wind_speeds.values)
     output = torch.tensor(moments.values)

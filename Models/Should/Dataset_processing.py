@@ -79,7 +79,7 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int) -
     return input, output
 
 
-def split_dataset(dataset_path: str, test_size: float, validation_size: float) -> tuple[Iterable, ...]:
+def split_dataset(data_list: Iterable, test_size: float, validation_size: float, random_state: int=42) -> tuple[Iterable[str], ...]:
     """
     Split the dataset into train, validation, and test set
 
@@ -94,17 +94,22 @@ def split_dataset(dataset_path: str, test_size: float, validation_size: float) -
 
     returns:
     --------
-    train_data: Iterable
+    train_data: Iterable[str]
         The train data files
-    validation_data: Iterable
+    validation_data: Iterable[str]
         The validation data files
-    test_data: Iterable
+    test_data: Iterable[str]
         The test data files
     """
-    files = os.listdir(dataset_path)
     test_validation_size = test_size + validation_size
-    train_data, test_validation_data = train_test_split(files, test_size=test_validation_size)
-    validation_data, test_data = train_test_split(test_validation_data, test_size=test_size/test_validation_size)
+    train_data, test_validation_data = train_test_split(data_list, 
+                                                        test_size=test_validation_size, 
+                                                        random_state=random_state,
+                                                        )
+    validation_data, test_data = train_test_split(test_validation_data, 
+                                                  test_size=test_size/test_validation_size, 
+                                                  random_state=random_state,
+                                                  )
 
     return train_data, test_data, validation_data
 

@@ -5,6 +5,8 @@ from collections.abc import Iterable
 import torch
 from torch.utils.data import Dataset
 
+from sklearn.model_selection import train_test_split
+
 
 class Should_Dataset(Dataset):
     def __init__(self, dataset_path, data, labels, transforms=None) -> None:
@@ -75,6 +77,37 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int) -
     output = torch.tensor(moments.values)
 
     return input, output
+
+
+def split_dataset(dataset_path: str, test_size: float, validation_size: float) -> tuple[Iterable, ...]:
+    """
+    Split the dataset into train, validation, and test set
+
+    parameters:
+    -----------
+    dataset_path: str
+        The path to the dataset
+    test_size: float
+        The size of the test set
+    validation_size: float
+        The size of the validation set
+
+    returns:
+    --------
+    train_data: Iterable
+        The train data files
+    validation_data: Iterable
+        The validation data files
+    test_data: Iterable
+        The test data files
+    """
+    files = os.listdir(dataset_path)
+    test_validation_size = test_size + validation_size
+    train_data, test_validation_data = train_test_split(files, test_size=test_validation_size)
+    validation_data, test_data = train_test_split(test_validation_data, test_size=test_size/test_validation_size)
+
+    return train_data, test_data, validation_data
+
 
 if __name__ == '__main__':
     dataset_path = "/Users/niels/Desktop/TU Delft/SmartWF-Capstone/Models/Should/"

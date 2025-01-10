@@ -11,4 +11,4 @@ class Must_Dataset(Dataset):
         return len(self.data)
         
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
-        return self.data[index], self.labels[index]
+        return torch.tensor(self.data.iloc[index], ), torch.tensor(self.labels.iloc[index])

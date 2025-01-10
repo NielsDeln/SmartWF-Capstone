@@ -1,15 +1,22 @@
 import sys
 import os
 
-# Add the parent directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
 
+# Construct the path
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# print(path)
+# Add the path to sys.path
+sys.path.append(path)
+# Change the working directory
+os.chdir(path)
+
+# print(os.path.join('Models', 'Must', 'DEL_must_model_2.csv'))
 from Models.Must.Neural_Network._utils import *
 from Models.Must.Neural_Network.Must_Dataset_processing import *
 from Models.Must.Neural_Network.Must_FNN import *
 
 if __name__ == "__main__":
-    must_df = pd.read_csv(r"..\DEL_must_model_2.csv", sep='\t', header=0)
+    must_df = pd.read_csv(r"Models/Must/DEL_must_model_2.csv", sep='\t', header=0)
 
     # Load the data
     train_data = must_df.iloc[:200][['Windspeed', 'STDeV']]
@@ -34,7 +41,7 @@ if __name__ == "__main__":
     }
 
     # Create the model
-    input_size = 1
+    input_size = 2
     hidden_size = 128
     # num_layers = 2, THis is already defined in Must_FNN.py
     output_size = 1
@@ -49,15 +56,15 @@ if __name__ == "__main__":
     loss_fn = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
+    early_stopping = EarlyStopping(patience=10)
     # Train the model
     n_epochs = 500
     trained_model, train_losses, validation_losses = train(model, 
-                                                           dataloaders['train'], 
+                                                           dataloaders, 
                                                            loss_fn, optimizer, 
                                                            n_epochs, 
                                                            device=device, 
-                                                           early_stopping=10, 
+                                                           early_stopping=early_stopping, 
                                                            print_freq=10,
                                                            )
 

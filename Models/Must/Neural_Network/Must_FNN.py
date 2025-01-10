@@ -64,32 +64,31 @@ class Should_model(nn.Module):
         return out
 '''
 
-class Must_Model(nn.Module):
+class Must_model(nn.Module):
   """
   PyTorch neural network. Network layers are defined in __init__ and forward
   pass implemented in forward.
   """
   
   def __init__(self, 
-               N_in, 
-               hidden_dim, 
-               N_out):
+               input_size, 
+               hidden_size, 
+               output_size):
     """
     Args:
-      N_in: number of features/dimensions of input layer
-      hidden_dim: number of features/dimensions of hidden dimension
-      N_out: number of features/dimensions of output layer
+      input_size: number of features/dimensions of input layer
+      hidden_size: number of features/dimensions of hidden dimension
+      output_size: number of features/dimensions of output layer
     """
-    super(Must_Model, self).__init__()
+    super(Must_model, self).__init__()
     self.linear_relu_stack = nn.Sequential(
-        nn.Linear(N_in, hidden_dim),
+        nn.Linear(input_size, hidden_size, dtype=torch.float64),
         nn.ReLU(),
-        nn.Linear(hidden_dim, hidden_dim),
+        nn.Linear(hidden_size, hidden_size, dtype=torch.float64),
         nn.ReLU(),
-        nn.Linear(hidden_dim, N_out),
+        nn.Linear(hidden_size, output_size, dtype=torch.float64),
         )
 
   def forward(self, x):
-
     y = self.linear_relu_stack(x)
     return y

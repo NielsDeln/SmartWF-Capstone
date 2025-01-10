@@ -51,10 +51,9 @@ class EarlyStopping:
         else:
             self.best_score = val_loss
             self.counter = 0
-            torch.save(model.state_dict(), f'/Models/Should/Trained_Models/best_model_{date.today()}.pt')
-
+            torch.save(model.state_dict(), f'Models/Must/Trained_Models/best_model_{date.today()}.pt')
     def load_best_model(self, model: nn.Module) -> None:
-        model.load_state_dict(torch.load(f'/Models/Should/Trained_Models/best_model_{date.today()}.pt'))
+        model.load_state_dict(torch.load(f'Models/Must/Trained_Models/best_model_{date.today()}.pt'))
 
 
 def train_one_epoch(model: nn.Module, 
@@ -149,13 +148,13 @@ def train(model: nn.Module,
     val_loss_history: list = []
 
     # Train the model
-    for epoch in tqdm(n_epochs):
+    for epoch in tqdm(range(n_epochs)):
         # Train for one epoch and append the loss to the loss history
         train_epoch_loss = train_one_epoch(model, dataloader['train'], criterion, optimizer, device)
         train_loss_history.append(train_epoch_loss)
 
         # Evaluate the model on the validation set
-        val_epoch_loss = evaluate(model, dataloader['val'], criterion, device)
+        val_epoch_loss = evaluate(model, dataloader['validation'], criterion, device)
         val_loss_history.append(val_epoch_loss)
 
         # Print the loss
@@ -166,9 +165,9 @@ def train(model: nn.Module,
             best_loss = val_epoch_loss
             
         
-        if early_stopping >= -1 and isinstance(early_stopping, int):
-            early_stopping(val_epoch_loss, model, patience=early_stopping)
-        elif early_stopping <= -1 or not isinstance(early_stopping, int):
+        if early_stopping.patience >= -1 and isinstance(early_stopping.patience, int):
+            early_stopping(val_epoch_loss, model) #, patience=early_stopping.patience)
+        elif early_stopping.patience <= -1 or not isinstance(early_stopping.patience, int):
             raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
         if early_stopping.early_stop:
             print(f'Early stopping at epoch {epoch+1}')

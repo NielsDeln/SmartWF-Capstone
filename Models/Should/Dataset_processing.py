@@ -105,10 +105,13 @@ def split_dataset(data_list: Iterable, test_size: float, validation_size: float,
     train_data, test_validation_data = train_test_split(data_list, 
                                                         test_size=test_validation_size, 
                                                         random_state=random_state,
+                                                        shuffle=True,
                                                         )
+    
     validation_data, test_data = train_test_split(test_validation_data, 
                                                   test_size=test_size/test_validation_size, 
                                                   random_state=random_state,
+                                                  shuffle=True,
                                                   )
 
     return train_data, test_data, validation_data

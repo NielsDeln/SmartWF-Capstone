@@ -92,7 +92,7 @@ def train_one_epoch(model: nn.Module,
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
-        if device != torch.device('cpu'):
+        if device == torch.device('cuda:0'):
             torch.cuda.empty_cache()
     return epoch_loss
 
@@ -146,6 +146,10 @@ def train(model: nn.Module,
     train_loss_history: list = []
     val_loss_history: list = []
 
+    # Initialize the early stopping if specified
+    if early_stopping >= 0 and isinstance(early_stopping, int):
+        early_stop = EarlyStopping(patience=early_stopping, delta=0)
+
     # Train the model
     for epoch in n_epochs:
         # Train for one epoch and append the loss to the loss history
@@ -160,19 +164,21 @@ def train(model: nn.Module,
         if epoch % print_freq == 0:
             print(f'Epoch {epoch+1}/{n_epochs}:\n------------\nTraining Loss {train_epoch_loss}, Validation Loss {val_epoch_loss}')
 
+        # Save the model if best loss is seen
         if val_epoch_loss < best_loss:
             best_loss = val_epoch_loss
-            
+            early_stop.save_best_model(model) 
         
         if early_stopping >= -1 and isinstance(early_stopping, int):
-            early_stopping(val_epoch_loss, model, patience=early_stopping)
+            early_stop(val_epoch_loss, model)
         elif early_stopping <= -1 or not isinstance(early_stopping, int):
             raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
-        if early_stopping.early_stop:
+        
+        if early_stop.early_stop:
             print(f'Early stopping at epoch {epoch+1}')
             break
     
-    early_stopping.load_best_model(model)
+    early_stop.load_best_model(model)
     return model, train_loss_history, val_loss_history
 
 
@@ -238,7 +244,7 @@ def plot_losses(train_loss_history: Iterable, val_loss_history: Iterable) -> Non
 
 
 def plot_inference(model: nn.Module, 
-                   dataset: Dataset, 
+                   dataloader: DataLoader, 
                    device: torch.device=torch.device('cpu')
                    ) -> None:
     """
@@ -248,19 +254,19 @@ def plot_inference(model: nn.Module,
     -----------
     model: torch.nn.Module
         The model to evaluate
-    dataset: torch.utils.data.Dataset
-        The dataset to evaluate
+    dataloader: torch.utils.data.DataLoader
+        The dataloader to plot inference on
     device: torch.device
         The device to use for evaluation
     """
     model.eval()
     with torch.no_grad():
-        for data, target in dataset:
-            data, target = data.to(device), target.to(device)
+        for data, target in dataloader:
+            data = data.to(device)
             output = model(data)
             plt.figure()
             plt.plot(data, target, label='True')
-            plt.plot(data, output, label='Predicted')
+            plt.plot(data, output.to('cpu'), label='Predicted')
             plt.legend()
             plt.show()
             break

@@ -4,7 +4,7 @@ from Models.Should.Should_LSTM import *
 
 if __name__ == "__main__":
     # Load the data
-    dataset_path = 'data/should_data/'
+    dataset_path = 'data/should_data/' # Replace in Kaggle with actual dataset path
     output_list = os.listdir(os.path.join(dataset_path, 'outputs'))
     input_list = os.listdir(os.path.join(dataset_path, 'inputs'))
 
@@ -26,9 +26,9 @@ if __name__ == "__main__":
 
     # Create the dataloader
     dataloaders = {
-        'train': DataLoader(datasets['train'], batch_size=32, shuffle=True),
-        'validation': DataLoader(datasets['validation'], batch_size=32, shuffle=False),
-        'test': DataLoader(datasets['test'], batch_size=32, shuffle=False)
+        'train': DataLoader(datasets['train'], batch_size=32, shuffle=True, num_workers=4),
+        'validation': DataLoader(datasets['validation'], batch_size=32, shuffle=True, num_workers=4),
+        'test': DataLoader(datasets['test'], batch_size=32, shuffle=True, num_workers=4)
     }
 
     # Create the model
@@ -64,4 +64,5 @@ if __name__ == "__main__":
 
     # Evaluate the model and plot inference
     test_loss = evaluate(trained_model, dataloaders['test'], loss_fn, device=device)
+
     plot_inference(trained_model, dataloaders['test'], device=device) # Needs to be altered to only plot inference for a couple of datapoints

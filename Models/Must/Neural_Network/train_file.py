@@ -9,7 +9,7 @@ from Models.Must.Neural_Network.Must_Dataset_processing import *
 from Models.Must.Neural_Network.Must_FNN import *
 
 if __name__ == "__main__":
-    must_df = pd.read_csv("..\DEL_must_model_2.csv", sep='\t')
+    must_df = pd.read_csv(r"..\DEL_must_model_2.csv", sep='\t', header=0)
 
     # Load the data
     train_data = must_df.iloc[:200][['Windspeed', 'STDeV']]
@@ -21,9 +21,9 @@ if __name__ == "__main__":
 
     # Create the dataset
     datasets = {
-        'train': Should_Dataset(train_data, train_labels),
-        'validation': Should_Dataset(validation_data, validation_labels),
-        'test': Should_Dataset(test_data, test_labels)
+        'train': Must_Dataset(train_data, train_labels),
+        'validation': Must_Dataset(validation_data, validation_labels),
+        'test': Must_Dataset(test_data, test_labels)
     }
 
     # Create the dataloader

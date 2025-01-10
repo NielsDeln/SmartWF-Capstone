@@ -69,7 +69,7 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int) -
 
     wind_index = [1, 4, 5, 6, 7, 8, 9, 10, 11]
     wind_speeds = df.iloc[2:, wind_index].mean(axis=1)
-    moments = df.iloc[2:, 24:36]
+    moments = df.iloc[2:, 24:30]
 
     input = torch.tensor(wind_speeds.values)
     output = torch.tensor(moments.values)
@@ -77,5 +77,5 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int) -
     return input, output
 
 if __name__ == '__main__':
-    dataset_path = "/Models/Should/"
-    load_input_output_tensor(dataset_path, ["w8.3000_s1.50.ms.out"], 0)
+    dataset_path = "/Users/niels/Desktop/TU Delft/SmartWF-Capstone/Models/Should/"
+    test_dataset = Should_Dataset(dataset_path, ["test.csv"], ["test.csv"])

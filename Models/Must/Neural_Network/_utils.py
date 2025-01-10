@@ -51,9 +51,9 @@ class EarlyStopping:
         else:
             self.best_score = val_loss
             self.counter = 0
-            torch.save(model.state_dict(), f'Models/Must/Trained_Models/best_model_{date.today()}.pt')
+            torch.save(model.state_dict(), f'Models/Must/Neural_Network/Trained_Models/best_model_{date.today()}.pt')
     def load_best_model(self, model: nn.Module) -> None:
-        model.load_state_dict(torch.load(f'Models/Must/Trained_Models/best_model_{date.today()}.pt'))
+        model.load_state_dict(torch.load(f'Models/Must/Neural_Network/Trained_Models/best_model_{date.today()}.pt'))
 
 
 def train_one_epoch(model: nn.Module, 

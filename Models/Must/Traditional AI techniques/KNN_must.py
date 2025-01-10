@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split, cross_val_score, GridSearc
 from sklearn.metrics import mean_absolute_error
 
 must_df = pd.read_csv('..\DEL_must_model_2.csv', sep='\t')
-print(must_df)
+# print(must_df)
 
 y = must_df['Leq_x'].to_numpy()
 X = must_df[['Windspeed', 'STDeV']].to_numpy()
@@ -53,4 +53,28 @@ plt.xlabel("Real Numbers (y_test)")
 plt.ylabel("Predictions")
 plt.legend()
 plt.grid(True)
+# plt.show()
+
+# Scatterplot with all predictions combined
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+# First scatter plot
+xs1 = must_df['Windspeed']
+ys1 = must_df['STDeV']
+zs1 = must_df['Leq_x']
+ax.scatter(xs1, ys1, zs1, marker='s', label='Data')
+
+# Second scatter plot
+xs2 = X_test[:,0]
+ys2 = X_test[:,1]
+zs2 = predictions_knn2
+ax.scatter(xs2, ys2, zs2, marker='o', label='KNN')
+
+# Set labels and title
+ax.set_xlabel('Windspeed')
+ax.set_ylabel('STDev')
+ax.set_zlabel('Leq')
+ax.set_title('3D Scatter Plots KNN')
+ax.legend()
 plt.show()

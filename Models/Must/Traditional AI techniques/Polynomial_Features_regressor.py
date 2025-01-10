@@ -59,7 +59,7 @@ ax.scatter(xs2, ys2, zs2, marker='o', label='Linear Regression')
 ax.set_xlabel('Windspeed')
 ax.set_ylabel('STDev')
 ax.set_zlabel('Leq')
-ax.set_title('Combined 3D Scatter Plots')
+ax.set_title('Polynomial feature extraction Linear Regression')
 ax.legend()
 plt.show()
 

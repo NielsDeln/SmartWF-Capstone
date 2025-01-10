@@ -34,7 +34,7 @@ plt.xlabel("Real Numbers (y_test)")
 plt.ylabel("Predictions")
 plt.legend()
 plt.grid(True)
-plt.show()
+# plt.show()
 
 
 # Scatterplot with all predictions combined

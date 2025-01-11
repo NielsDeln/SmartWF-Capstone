@@ -32,7 +32,7 @@ for filename in os.listdir(output_dir):
 
             match = re.match(r"w(\d+\.\d+)_s(\d+\.\d+)_", filename)
 
-            m = 1 # Wohler slope 
+            m = 10 # Wohler slope 
             Leq_x = equivalent_load(df['Time_[s]'], df['RootMxb1_[kN-m]'], m=m) 
             Leq_y = equivalent_load(df['Time_[s]'], df['RootMyb1_[kN-m]'], m=m) 
 

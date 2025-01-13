@@ -24,7 +24,7 @@ class EarlyStopping:
         """
         self.patience = patience
         self.delta = delta
-        self.best_score: float | None = None
+        self.best_score: float = float('inf')
         self.early_stop: bool = False
         self.counter: int = 0
 
@@ -39,10 +39,7 @@ class EarlyStopping:
         model: torch.nn.Module
             The model to save if an improvement is seen
         """
-        if self.best_score is None:
-            self.best_score = val_loss
-            self.best_model_state = model.state_dict()
-        elif val_loss > self.best_score - self.delta:
+        if val_loss > self.best_score - self.delta:
             self.counter += 1
             if self.counter >= self.patience:
                 self.early_stop = True
@@ -148,7 +145,7 @@ def train(model: nn.Module,
 
     # Initialize the early stopping if specified
     if early_stopping >= 0 and isinstance(early_stopping, int):
-        early_stop = EarlyStopping(patience=early_stopping, delta=0)
+        stop_condition = EarlyStopping(patience=early_stopping, delta=0)
 
     # Train the model
     for epoch in n_epochs:
@@ -167,18 +164,18 @@ def train(model: nn.Module,
         # Save the model if best loss is seen
         if val_epoch_loss < best_loss:
             best_loss = val_epoch_loss
-            early_stop.save_best_model(model) 
+            stop_condition.save_best_model(model) 
         
         if early_stopping >= -1 and isinstance(early_stopping, int):
-            early_stop(val_epoch_loss, model)
+            stop_condition(val_epoch_loss, model)
         elif early_stopping <= -1 or not isinstance(early_stopping, int):
             raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
         
-        if early_stop.early_stop:
+        if stop_condition.early_stop:
             print(f'Early stopping at epoch {epoch+1}')
             break
     
-    early_stop.load_best_model(model)
+    stop_condition.load_best_model(model)
     return model, train_loss_history, val_loss_history
 
 

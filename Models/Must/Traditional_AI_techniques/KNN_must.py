@@ -1,6 +1,7 @@
 #from EquivLoad import must_df
 from sklearn.neighbors import KNeighborsRegressor
 import matplotlib.pyplot as plt
+from Models.Must.Traditional 
 
 import numpy as np
 import pandas as pd

@@ -16,7 +16,7 @@ must_df = pd.DataFrame(columns = columns)
 # Julia
 output_dir = r"C:\Users\Jwoon\Desktop\All must data"
 # Hugo
-#output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Dataset_complete\Outputs"
+output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Dataset_complete\Outputs"
 
 
 counter = 0

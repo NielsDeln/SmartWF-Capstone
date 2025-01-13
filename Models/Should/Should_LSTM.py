@@ -29,10 +29,12 @@ class Should_model(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.dropout = dropout
+        self.hidden_state = nn.Parameter(torch.zeros(self.num_layers, 1, self.hidden_size))
+        self.cell_state = nn.Parameter(torch.zeros(self.num_layers, 1, self.hidden_size))
 
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=self.dropout)
 
-    def forward(self, x, h0=None, c0=None) -> torch.Tensor:
+    def forward(self, x) -> torch.Tensor:
         """
         Forward pass of the LSTM model.
 
@@ -50,10 +52,8 @@ class Should_model(nn.Module):
         out: torch.Tensor
             Output data
         """
-        if h0 is None:
-            h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        if c0 is None:
-            c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-
+        h0 = self.hidden_state
+        c0 = self.cell_state
+        
         out, _ = self.lstm(x, (h0, c0))
         return out

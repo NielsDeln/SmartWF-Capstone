@@ -10,13 +10,13 @@ sys.path.append(path)
 # Change the working directory
 os.chdir(path)
 
-# print(os.path.join('Models', 'Must', 'DEL_must_model_2.csv'))
+# print(os.path.join('Models', 'Must', 'DEL_must_model.csv'))
 from Models.Must.Neural_Network._utils import *
 from Models.Must.Neural_Network.Must_Dataset_processing import *
 from Models.Must.Neural_Network.Must_FNN import *
 
 if __name__ == "__main__":
-    must_df = pd.read_csv(r"Models/Must/DEL_must_model_2.csv", sep='\t', header=0)
+    must_df = pd.read_csv(r"Models/Must/DEL_must_model.csv", sep='\t', header=0)
 
     # Load the data
     train_data = must_df.iloc[:200][['Windspeed', 'STDeV']]

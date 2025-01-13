@@ -22,7 +22,7 @@ output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Data
 counter = 0
 # Loop through all files in the directory
 for filename in os.listdir(output_dir):
-        if counter < 4 :
+        if counter < 5000:
               
             # Build the full file path
             file_path = os.path.join(output_dir, filename)
@@ -31,7 +31,7 @@ for filename in os.listdir(output_dir):
             df = FASTOutputFile(file_path).toDataFrame()
 
             match = re.match(r"w(\d+\.\d+)_s(\d+\.\d+)_", filename)
-            
+
             m = 10 # Wohler slope 
             Leq_x = equivalent_load(df['Time_[s]'], df['RootMxb1_[kN-m]'], m=m) 
             Leq_y = equivalent_load(df['Time_[s]'], df['RootMyb1_[kN-m]'], m=m) 
@@ -52,4 +52,4 @@ for filename in os.listdir(output_dir):
 must_df = must_df.sort_values(by='Windspeed', ascending=True)
 print(must_df)
 
-must_df.to_csv('DEL_must_model.csv', sep='\t', index=True, header=True)
+must_df.to_csv(path_or_buf='..\DEL_must_model.csv', sep='\t', index=True, header=True)

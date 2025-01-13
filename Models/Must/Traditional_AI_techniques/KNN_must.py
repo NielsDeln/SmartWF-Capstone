@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 import Models.Must.Traditional_AI_techniques.Plot_data 
 
-must_df = pd.read_csv('..\DEL_must_model_2.csv', sep='\t')
+must_df = pd.read_csv('..\DEL_must_model.csv', sep='\t')
 # print(must_df)
 
 y = must_df['Leq_x'].to_numpy()

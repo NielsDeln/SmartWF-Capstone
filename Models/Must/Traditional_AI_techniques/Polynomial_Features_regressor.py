@@ -1,3 +1,13 @@
+import os
+import sys
+# Construct the path
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# print(path)
+# Add the path to sys.path
+sys.path.append(path)
+# Change the working directory
+os.chdir(path)
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -8,17 +18,19 @@ from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression, SGDRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-must_df = pd.read_csv("..\DEL_must_model.csv", sep='\t')
+from Models.Must.Traditional_AI_techniques.Plot_data import *
+must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
 y = must_df['Leq_x'].to_numpy()
 X = must_df[['Windspeed', 'STDeV']].to_numpy()
 
-degrees = np.arange(2,3)
-degree = 1
-print(degrees)
+# print(X.shape)
+# print(y.shape)
+# print(y, X)
+degrees = np.arange(1,8)
 for d in degrees:
-    poly = PolynomialFeatures(degree=8, include_bias=False)
+    poly = PolynomialFeatures(degree=d, include_bias=False)
     poly_features = poly.fit_transform(X)
-    X_train, X_test, y_train, y_test = train_test_split(poly_features, y, test_size=0.3, random_state=42)
+    X_train, X_test, y_train, y_test =  train_test_split(poly_features, y, test_size=0.3, random_state=42)
 
     poly_reg_model = LinearRegression()
     poly_reg_model.fit(X_train, y_train)
@@ -32,34 +44,9 @@ for d in degrees:
     # print(f"SGD Regression {d} mae:", mae_sgd)
 
 
-'''
-Optimal parameters for Linear Regression, degree=8, bias=False
-'''
-# Scatterplot with all predictions combined
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
+predictions = pd.DataFrame(np.column_stack((X_test[:,:2], poly_reg_y_pred)), columns=['Windspeed', 'STDeV', 'Leq'])
 
-# First scatter plot
-xs1 = must_df['Windspeed']
-ys1 = must_df['STDeV']
-zs1 = must_df['Leq_x']
-ax.scatter(xs1, ys1, zs1, marker='s', label='Data')
-
-# Second scatter plot
-xs2 = X_test[:,0]
-ys2 = X_test[:,1]
-zs2 = poly_reg_y_pred
-ax.scatter(xs2, ys2, zs2, marker='o', label='Linear Regression')
-
-# # Third scatter plot
-# zs3 = predictions_sgd
-# ax.scatter(xs2, ys2, zs3, marker='^', label='SGD')
-
-# Set labels and title
-ax.set_xlabel('Windspeed')
-ax.set_ylabel('STDev')
-ax.set_zlabel('Leq')
-ax.set_title('Polynomial feature extraction Linear Regression')
-ax.legend()
+plot_label_pred(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
+plot_rel_err(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
 plt.show()
-

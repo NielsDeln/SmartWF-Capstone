@@ -1,15 +1,23 @@
-#from EquivLoad import must_df
-
-from sklearn.ensemble import RandomForestRegressor
-import matplotlib.pyplot as plt
+import os
+import sys
+# Construct the path
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# print(path)
+# Add the path to sys.path
+sys.path.append(path)
+# Change the working directory
+os.chdir(path)
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import mean_absolute_error
+from sklearn.ensemble import RandomForestRegressor
 
-must_df = pd.read_csv('..\DEL_must_model.csv', sep='\t')
+from Models.Must.Traditional_AI_techniques.Plot_data import *
+must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
 # print(must_df)
 
 y = must_df['Leq_x'].to_numpy()
@@ -23,9 +31,9 @@ predictions_rf = rf.predict(X_test)
 mae_rf = mean_absolute_error(y_test, predictions_rf)
 print("mean absolute error:", mae_rf)
 
-scores_rf = cross_val_score(rf, X_train, y_train, cv=5, scoring = 'neg_mean_absolute_error')
-mean_rf = np.mean(-scores_rf)
-print("mean absolute error cross validation",mean_rf)
+# scores_rf = cross_val_score(rf, X_train, y_train, cv=5, scoring = 'neg_mean_absolute_error')
+# mean_rf = np.mean(-scores_rf)
+# print("mean absolute error cross validation",mean_rf)
 
 plt.scatter(y_test, predictions_rf, alpha=0.7, edgecolor='k', label='Predictions')
 plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--', label='Perfect Fit')
@@ -37,7 +45,7 @@ plt.grid(True)
 # plt.show()
 
 
-# Scatterplot with all predictions combined
+'''# Scatterplot with all predictions combined
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
@@ -59,4 +67,11 @@ ax.set_ylabel('STDev')
 ax.set_zlabel('Leq')
 ax.set_title('3D Scatter Plots Random Forest')
 ax.legend()
+plt.show()'''
+
+ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
+predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_rf)), columns=['Windspeed', 'STDeV', 'Leq'])
+plot_label_pred(ground_truth, predictions, title='Random Forest Regressor')
+plot_rel_err(ground_truth, predictions, title='Random Forest Regressor')
+
 plt.show()

@@ -4,26 +4,31 @@ from Models.Should.Should_LSTM import *
 
 if __name__ == "__main__":
     # Load the data
-    train_data = []
-    train_labels = []
-    validation_data = []    
-    validation_labels = [] 
-    test_data = []
-    test_labels = []
+    dataset_path = 'data/should_data/' # Replace in Kaggle with actual dataset path
+    output_list = os.listdir(os.path.join(dataset_path, 'outputs'))
+    input_list = os.listdir(os.path.join(dataset_path, 'inputs'))
+
+    # Split the data
+    data_list = pd.DataFrame([input_list, output_list]).T
+    train_data, test_data, validation_data = split_dataset(data_list, test_size=0.15, validation_size=0.15)
+
+    # Split features and labels
+    train_features, train_labels = train_data.iloc[:, 0], train_data.iloc[:, 1]
+    validation_features, validation_labels = validation_data.iloc[:, 0], validation_data.iloc[:, 1]
+    test_features, test_labels = test_data.iloc[:, 0], test_data.iloc[:, 1]
 
     # Create the dataset
-    
     datasets = {
-        'train': Should_Dataset(train_data, train_labels),
-        'validation': Should_Dataset(validation_data, validation_labels),
-        'test': Should_Dataset(test_data, test_labels)
+        'train': Should_Dataset(train_features, train_labels),
+        'validation': Should_Dataset(validation_features, validation_labels),
+        'test': Should_Dataset(test_features, test_labels)
     }
 
     # Create the dataloader
     dataloaders = {
-        'train': DataLoader(datasets['train'], batch_size=32, shuffle=True),
-        'validation': DataLoader(datasets['validation'], batch_size=32, shuffle=False),
-        'test': DataLoader(datasets['test'], batch_size=32, shuffle=False)
+        'train': DataLoader(datasets['train'], batch_size=32, shuffle=True, num_workers=4),
+        'validation': DataLoader(datasets['validation'], batch_size=32, shuffle=True, num_workers=4),
+        'test': DataLoader(datasets['test'], batch_size=32, shuffle=True, num_workers=4)
     }
 
     # Create the model
@@ -59,4 +64,5 @@ if __name__ == "__main__":
 
     # Evaluate the model and plot inference
     test_loss = evaluate(trained_model, dataloaders['test'], loss_fn, device=device)
+
     plot_inference(trained_model, dataloaders['test'], device=device) # Needs to be altered to only plot inference for a couple of datapoints

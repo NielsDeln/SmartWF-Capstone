@@ -60,7 +60,7 @@ def plot_label_pred(ground_truth, predictions, title:str):
     ax.view_init(elev=20, azim=-122, roll=0)
     ax.legend()
 
-def plot_err(ground_truth, 
+def plot_err_3D(ground_truth, 
                  predictions,
                  title:str, 
                  error_type:str='absolute'):

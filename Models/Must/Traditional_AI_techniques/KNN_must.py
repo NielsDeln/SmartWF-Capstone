@@ -73,5 +73,6 @@ predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_knn_best))
 # plot_label_pred(ground_truth, predictions, title='KNN Regressor')
 # plot_rel_err(ground_truth, predictions, title='KNN Regressor')
 plot_label_pred_2D(ground_truth, predictions, title='KNN Regressor',STDeV=all)
+plot_err_2D(ground_truth, predictions, title='KNN Regressor',STDeV=[1,1.25,2], error_type='relative')
 
 plt.show()

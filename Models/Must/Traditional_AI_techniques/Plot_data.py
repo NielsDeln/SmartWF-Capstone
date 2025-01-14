@@ -60,7 +60,10 @@ def plot_label_pred(ground_truth, predictions, title:str):
     ax.view_init(elev=20, azim=-122, roll=0)
     ax.legend()
 
-def plot_rel_err(ground_truth, predictions, title:str):
+def plot_err(ground_truth, 
+                 predictions,
+                 title:str, 
+                 error_type:str='absolute'):
     """
     Plots the relative error between ground truth and predictions in a 3D scatter plot.
 
@@ -80,20 +83,31 @@ def plot_rel_err(ground_truth, predictions, title:str):
     
     label = ground_truth.iloc[:,2]
     prediction = predictions.iloc[:,2]
-    zs2 = (prediction - label)/label
-
+    if error_type == 'absolute':
+        zs2 = (prediction - label)
+    elif error_type == 'relative':
+        zs2 = (prediction - label)/label
+    elif error_type == 'percentage':
+        zs2 = (prediction - label)/label * 100
+    
     ax.scatter(xs1, ys1, zs2, marker='o', label='Error')
 
     # Set labels and title
     ax.set_xlabel('Windspeed')
     ax.set_ylabel('STDev')
     ax.set_zlabel('Relative Error')
-    ax.set_title(f'3D Scatter Plots \nRelative Error\n{title}')
+    ax.set_title(f'3D Scatter Plots, {error_type}, {title}')
     
     ax.view_init(elev=20, azim=-122, roll=0)
     ax.legend()
 
-def plot_label_pred_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all):
+def plot_label_pred_2D(ground_truth, 
+                       predictions, 
+                       title:str=None,
+                       W_min=5, 
+                       W_max=25, 
+                       STDeV:list|str|int=all, 
+                       ):
     if STDeV == all:
             STDeV = list(np.arange(0.25,2.75,0.25))
     elif type(STDeV) == int:
@@ -107,7 +121,7 @@ def plot_label_pred_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=
     else:
             raise ValueError('STDeV must be either a list, an integer or "all"')
 
-    fig, axs = plt.subplots(len(STDeV) // 3 + (len(STDeV) % 3 > 0), 3, figsize=(15, 5 * (len(STDeV) // 3 + (len(STDeV) % 3 > 0))))
+    fig, axs = plt.subplots(len(STDeV) // 2 + (len(STDeV) % 2 > 0), 2, figsize=(20, 5 * (len(STDeV) // 2 + (len(STDeV) % 2 > 0))))
     axs = axs.flatten()
     
     for i in range(len(STDeV)):  
@@ -145,4 +159,54 @@ def plot_label_pred_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=
     [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
     # plt.tight_layout()
     plt.suptitle(f'2D Scatter Plot \nLabel and prediction\nW_speeds: [{W_min},{W_max}]', y=1.05)
-    plt.show()
+
+def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
+    if STDeV == all:
+        STDeV = list(np.arange(0.25, 2.75, 0.25))
+    elif type(STDeV) == int:
+        if STDeV not in set(np.arange(0.25, 2.75, 0.25)):
+            raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
+        STDeV = [STDeV]
+    elif type(STDeV) == list:
+        for STDeV_value in STDeV:
+            if STDeV_value not in set(np.arange(0.25, 2.5, 0.25)):
+                raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
+    else:
+        raise ValueError('STDeV must be either a list, an integer or "all"')
+
+    fig, axs = plt.subplots(len(STDeV) // 2 + (len(STDeV) % 2 > 0), 2, figsize=(20, 5 * (len(STDeV) // 2 + (len(STDeV) % 2 > 0))))
+    axs = axs.flatten()
+
+    for i in range(len(STDeV)):
+        ax = axs[i]
+        Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
+                                    (ground_truth['Windspeed'] >= W_min) &
+                                    (ground_truth['Windspeed'] <= W_max)]
+
+        pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
+                                    (predictions['Windspeed'] >= W_min) &
+                                    (predictions['Windspeed'] <= W_max)]
+
+        xs1 = pred_selection['Windspeed']
+        ys1 = pred_selection['STDeV']
+        label = Data_selection.iloc[:, 2]
+        prediction = pred_selection.iloc[:, 2]
+
+        if error_type == 'absolute':
+            zs2 = (prediction - label)
+        elif error_type == 'relative':
+            zs2 = (prediction - label) / label
+        elif error_type == 'percentage':
+            zs2 = (prediction - label) / label * 100
+
+        ax.scatter(xs1, zs2, marker='o', label='Error')
+
+        ax.set_xlabel('Windspeed')
+        ax.set_ylabel(f'{error_type} Error')
+        ax.set_title(f'STDev={STDeV[i]}')
+        ax.legend()
+        ax.grid()
+
+    [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
+    plt.suptitle(f'2D Scatter Plot, {error_type}, W_speeds: [{W_min},{W_max}]', y=1.05)
+    plt.tight_layout(rect=[0, 0, 1, 0.96])

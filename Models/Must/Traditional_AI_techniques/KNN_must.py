@@ -67,8 +67,11 @@ print(('mae knn_best', mae_knn_best))
 # plt.grid(True)
 # plt.show()
 
+all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq'])
 ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
 predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_knn_best)), columns=['Windspeed', 'STDeV', 'Leq'])
-plot_label_pred(ground_truth, predictions, title='KNN Regressor')
-plot_rel_err(ground_truth, predictions, title='KNN Regressor')
+# plot_label_pred(ground_truth, predictions, title='KNN Regressor')
+# plot_rel_err(ground_truth, predictions, title='KNN Regressor')
+plot_label_pred_2D(ground_truth, predictions, title='KNN Regressor',STDeV=all)
+
 plt.show()

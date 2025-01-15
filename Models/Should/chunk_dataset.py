@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import os
 
 def chunk_dataset(dataset_path, chunk_size):
@@ -22,12 +21,9 @@ def chunk_dataset(dataset_path, chunk_size):
         os.makedirs(save_path)
 
     for datapoint in datapoints:
-        # Skip hidden files
-        if datapoint.startswith('.'):
+        # Ignore all items that do not end with .out
+        if not datapoint.endswith('.out'):
             continue
-        
-        # Split the datapoint name
-        datapoint_info = datapoint.split('_')
 
         # Load the dataset
         file_path = os.path.join(dataset_path, datapoint)
@@ -40,10 +36,10 @@ def chunk_dataset(dataset_path, chunk_size):
         df_header = df_data.iloc[:2, columns_keep]
 
         # Disregard the first minute of data and keep only the relevant columns
-        df_data = df_data.iloc[1503:, columns_keep]
+        df_data = df_data.iloc[1502:, columns_keep]
 
         for i in range(len(df_data)//chunk_size):
-            filename = datapoint_info[:3].join('_') + datapoint_info[3] + '_split' + str(i).zfill(2) + '.csv'
+            filename = os.path.splitext(datapoint)[0] + '_split' + str(i+1).zfill(2) + '.csv'
             df_chunk = df_data.iloc[i*chunk_size:(i+1)*chunk_size, ::]
             df_chunk = pd.concat([df_header, df_chunk], axis=0)
             df_chunk.to_csv(os.path.join(save_path, filename), sep=' ', index=False)

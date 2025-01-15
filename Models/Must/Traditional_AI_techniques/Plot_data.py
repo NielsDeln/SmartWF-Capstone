@@ -115,7 +115,7 @@ def plot_err_3D(ground_truth,
     # Set labels and title
     ax.set_xlabel('Windspeed')
     ax.set_ylabel('STDev')
-    ax.set_zlabel('Relative Error')
+    ax.set_zlabel(f'{error_type} Error')
     ax.set_title(f'3D Scatter Plots, {error_type} error, {title}')
     
     ax.view_init(elev=20, azim=-122, roll=0)
@@ -131,7 +131,8 @@ def plot_label_pred_2D(ground_truth,
     # Here we plot the 2D scatter plot for the specific STDeV and W_speed value
 
     if STDeV == all:
-            STDeV = list(np.arange(0.25,2.75,0.25))
+            # STDeV = list(np.arange(0.25,2.75,0.25))
+            STDeV = ground_truth['STDeV'].unique()
     elif type(STDeV) == int:
             if STDeV not in set(np.arange(0.25,2.75,0.25)):
                 raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
@@ -152,18 +153,20 @@ def plot_label_pred_2D(ground_truth,
             if i + j >= len(STDeV):
                 break
             ax = axs[j]
-            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
-                        (ground_truth['Windspeed'] >= W_min) & 
-                        (ground_truth['Windspeed'] <= W_max)]
+            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
+            #             (ground_truth['Windspeed'] >= W_min) & 
+            #             (ground_truth['Windspeed'] <= W_max)]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j])]
             # Labels
             xs1 = Data_selection['Windspeed']
             zs1 = Data_selection.iloc[:,2]
             ax.scatter(xs1, zs1, marker='s', label='Data')
 
             if predictions is not None:
-                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
-                            (predictions['Windspeed'] >= W_min) & 
-                            (predictions['Windspeed'] <= W_max)]
+                # pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
+                #             (predictions['Windspeed'] >= W_min) & 
+                #             (predictions['Windspeed'] <= W_max)]
+                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j])]
                 # PREDICTIONS
                 xs2 = pred_selection['Windspeed']
                 zs2 = pred_selection.iloc[:,2]
@@ -181,7 +184,8 @@ def plot_label_pred_2D(ground_truth,
 
 def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
     if STDeV == all:
-        STDeV = list(np.arange(0.25, 2.75, 0.25))
+        # STDeV = list(np.arange(0.25, 2.75, 0.25))
+        STDeV = ground_truth['STDeV'].unique()
     elif type(STDeV) == int:
         if STDeV not in set(np.arange(0.25, 2.75, 0.25)):
             raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
@@ -200,13 +204,16 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
             if i + j >= len(STDeV):
                 break
             ax = axs[j]
-            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
-                                        (ground_truth['Windspeed'] >= W_min) &
-                                        (ground_truth['Windspeed'] <= W_max)]
+            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
+            #                             (ground_truth['Windspeed'] >= W_min) &
+            #                             (ground_truth['Windspeed'] <= W_max)]
 
-            pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
-                                        (predictions['Windspeed'] >= W_min) &
-                                        (predictions['Windspeed'] <= W_max)]
+            # pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
+            #                             (predictions['Windspeed'] >= W_min) &
+            #                             (predictions['Windspeed'] <= W_max)]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i])]
+
+            pred_selection = predictions[(predictions['STDeV'] == STDeV[i])]
 
             xs1 = pred_selection['Windspeed']
             ys1 = pred_selection['STDeV']

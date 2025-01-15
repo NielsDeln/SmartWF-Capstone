@@ -13,39 +13,59 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.preprocessing import PolynomialFeatures
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 from sklearn.linear_model import LinearRegression, SGDRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.pipeline import Pipeline
 
 from Models.Must.Traditional_AI_techniques.Plot_data import *
 must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
 y = must_df['Leq_x'].to_numpy()
 X = must_df[['Windspeed', 'STDeV']].to_numpy()
 
-# print(X.shape)
-# print(y.shape)
-# print(y, X)
-degrees = np.arange(1,8)
-for d in degrees:
-    poly = PolynomialFeatures(degree=d, include_bias=False)
-    poly_features = poly.fit_transform(X)
-    X_train, X_test, y_train, y_test =  train_test_split(poly_features, y, test_size=0.3, random_state=42)
+X_train, X_test, y_train, y_test =  train_test_split(X, y, test_size=0.3, random_state=42)
 
-    poly_reg_model = LinearRegression()
-    poly_reg_model.fit(X_train, y_train)
-    poly_reg_y_pred = poly_reg_model.predict(X_test)
-    poly_reg_mae = mean_absolute_error(y_test,poly_reg_y_pred)
-    print(f"LinearRegression degree {d} mae:", poly_reg_mae)
-    # sgd = SGDRegressor(max_iter=1000, tol=1e-3, learning_rate='optimal')
-    # sgd.fit(X_train, y_train)
-    # predictions_sgd = sgd.predict(X_test)
-    # mae_sgd = mean_absolute_error(y_test, predictions_sgd)
-    # print(f"SGD Regression {d} mae:", mae_sgd)
+# define the pipeline
+pipe = Pipeline(steps=[
+    ('scaler', StandardScaler()),
+    ('preprocessor', PolynomialFeatures(degree=7, include_bias=False)),
+    ('estimator', SGDRegressor(penalty='l2'))
+])
 
+# fit the pipeline
+pipe.fit(X_train, y_train)
+# Get the predictions
+y_pred_train_pipe = pipe.predict(X_test)
+print(pipe.score(X_test, y_test))
 
+# Define the parameter grid
+param_grid = {
+    'preprocessor__degree': [1, 2, 3, 4, 5, 6, 7, 20],
+    'estimator__alpha': [1e-5, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+    'estimator__max_iter': [100, 500, 1000, 2000, 5000]
+}
+
+# Initialize GridSearchCV
+grid_search = GridSearchCV(pipe, param_grid, cv=5, scoring='neg_mean_absolute_error')
+
+# Fit GridSearchCV
+grid_search.fit(X_train, y_train)
+
+# Get the best parameters and best score
+best_params = grid_search.best_params_
+best_score = grid_search.best_score_
+print(f"Best parameters: {best_params}")
+print(f"Best score: {best_score}")
+
+# Use the best estimator to make predictions
+best_pipe = grid_search.best_estimator_
+y_pred_train_pipe = best_pipe.predict(X_test)
+print(best_pipe.score(X_test, y_test))
+
+# Plot the results
 ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
-predictions = pd.DataFrame(np.column_stack((X_test[:,:2], poly_reg_y_pred)), columns=['Windspeed', 'STDeV', 'Leq'])
+predictions = pd.DataFrame(np.column_stack((X_test[:,:2], y_pred_train_pipe)), columns=['Windspeed', 'STDeV', 'Leq'])
 
 plot_label_pred_3D(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
 plot_err_3D(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')

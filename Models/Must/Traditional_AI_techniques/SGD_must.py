@@ -1,19 +1,31 @@
-import matplotlib.pyplot as plt
-from sklearn.linear_model import SGDRegressor
+import os
+import sys
+# Construct the path
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+# print(path)
+# Add the path to sys.path
+sys.path.append(path)
+# Change the working directory
+os.chdir(path)
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import SGDRegressor
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-must_df = pd.read_csv('..\DEL_must_model.csv', sep='\t')
-print(must_df)
+from Models.Must.Traditional_AI_techniques.Plot_data import *
+must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
 
 y = must_df['Leq_x'].to_numpy()
 X = must_df[['Windspeed', 'STDeV']].to_numpy()
 
 X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.3, random_state=42)
+
 
 sgd = SGDRegressor()
 sgd.fit(X_train, y_train)

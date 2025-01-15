@@ -262,7 +262,7 @@ def plot_mean_error(ground_truth,
     plt.figure()
     plt.plot(mean_error.index, mean_error.values, label=f'Mean {error_type} Error')
     plt.xlabel(variant)
-    plt.ylabel(f'{error_type} Error')
+    plt.ylabel(f'Mean {error_type} Error')
     plt.title(f'{title}')
     plt.legend()
     plt.grid()

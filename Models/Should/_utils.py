@@ -242,6 +242,7 @@ def plot_losses(train_loss_history: Iterable, val_loss_history: Iterable) -> Non
 
 def plot_inference(model: nn.Module, 
                    dataloader: DataLoader, 
+                   num_inf: int=1,
                    device: torch.device=torch.device('cpu')
                    ) -> None:
     """
@@ -253,10 +254,17 @@ def plot_inference(model: nn.Module,
         The model to evaluate
     dataloader: torch.utils.data.DataLoader
         The dataloader to plot inference on
+    num_inf: int
+        The number of inferences to plot
+        default: 1
     device: torch.device
         The device to use for evaluation
     """
+    if num_inf < 1 or not isinstance(num_inf, int):
+        raise ValueError('Number of inferences must be an integer greater than 0') 
+
     model.eval()
+    count = 0
     with torch.no_grad():
         for data, target in dataloader:
             data = data.to(device)
@@ -266,4 +274,8 @@ def plot_inference(model: nn.Module,
             plt.plot(data, output.to('cpu'), label='Predicted')
             plt.legend()
             plt.show()
-            break
+
+            # Break if the number of inferences is reached
+            count += 1
+            if count == num_inf:
+                break

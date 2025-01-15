@@ -131,8 +131,8 @@ def plot_label_pred_2D(ground_truth,
     # Here we plot the 2D scatter plot for the specific STDeV and W_speed value
 
     if STDeV == all:
-            # STDeV = list(np.arange(0.25,2.75,0.25))
-            STDeV = ground_truth['STDeV'].unique()
+            STDeV = list(np.arange(0.25,2.75,0.25))
+            # STDeV = ground_truth['STDeV'].unique()
     elif type(STDeV) == int:
             if STDeV not in set(np.arange(0.25,2.75,0.25)):
                 raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
@@ -184,8 +184,8 @@ def plot_label_pred_2D(ground_truth,
 
 def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
     if STDeV == all:
-        # STDeV = list(np.arange(0.25, 2.75, 0.25))
-        STDeV = ground_truth['STDeV'].unique()
+        STDeV = list(np.arange(0.25, 2.75, 0.25))
+        # STDeV = ground_truth['STDeV'].unique()
     elif type(STDeV) == int:
         if STDeV not in set(np.arange(0.25, 2.75, 0.25)):
             raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
@@ -237,7 +237,7 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
 
         [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
         fig.subplots_adjust(hspace=0.4)
-        plt.suptitle(f'2D Scatter Plot, {error_type} error, W_speeds: [{W_min},{W_max}]')
+        plt.suptitle(f'2D Scatter Plot, {error_type} error, W_speeds: [{W_min},{W_max}]\n{title}')
 
 def plot_mean_error(ground_truth, 
                     predictions, 

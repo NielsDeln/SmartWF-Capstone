@@ -42,39 +42,17 @@ plt.xlabel("Real Numbers (y_test)")
 plt.ylabel("Predictions")
 plt.legend()
 plt.grid(True)
-# plt.show()
 
-
-'''# Scatterplot with all predictions combined
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-# First scatter plot
-xs1 = must_df['Windspeed']
-ys1 = must_df['STDeV']
-zs1 = must_df['Leq_x']
-ax.scatter(xs1, ys1, zs1, marker='s', label='Data')
-
-# Second scatter plot
-xs2 = X_test[:,0]
-ys2 = X_test[:,1]
-zs2 = predictions_rf
-ax.scatter(xs2, ys2, zs2, marker='o', label='Random Forest')
-
-# Set labels and title
-ax.set_xlabel('Windspeed')
-ax.set_ylabel('STDev')
-ax.set_zlabel('Leq')
-ax.set_title('3D Scatter Plots Random Forest')
-ax.legend()
-plt.show()'''
 
 ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
 predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_rf)), columns=['Windspeed', 'STDeV', 'Leq'])
 
-plot_label_pred(ground_truth, predictions, title='Random Forest Regressor')
+plot_label_pred_3D(ground_truth, predictions, title='Random Forest Regressor')
 plot_err_3D(ground_truth, predictions, title='Random Forest Regressor')
 
 plot_label_pred_2D(ground_truth, predictions, title='Random Forest Regressor', STDeV=all)
 plot_err_2D(ground_truth, predictions, title='Random Forest Regressor', STDeV=all, error_type='relative')
+
+plot_mean_error(ground_truth, predictions, title='Random Forest Regressor', variant='Windspeed', error_type='relative')
+plot_mean_error(ground_truth, predictions, title='Random Forest Regressor', variant='STDeV', error_type='relative')
 plt.show()

@@ -47,10 +47,12 @@ for d in degrees:
 ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
 predictions = pd.DataFrame(np.column_stack((X_test[:,:2], poly_reg_y_pred)), columns=['Windspeed', 'STDeV', 'Leq'])
 
-plot_label_pred(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
+plot_label_pred_3D(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
 plot_err_3D(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
 
 plot_label_pred_2D(ground_truth, predictions, title='Polynomial feature extraction Linear Regression')
 plot_err_2D(ground_truth, predictions, title='Polynomial feature extraction Linear Regression', error_type='relative')
 
+plot_mean_error(ground_truth, predictions, title='Polynomial feature extraction Linear Regression', variant='Windspeed', error_type='relative')
+plot_mean_error(ground_truth, predictions, title='Polynomial feature extraction Linear Regression', variant='STDeV', error_type='relative')
 plt.show()

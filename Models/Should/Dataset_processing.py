@@ -65,16 +65,10 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int) -
     df = pd.read_csv(file_path,
                      delim_whitespace=True, 
                      header=None, 
-                     skiprows=6)
+                     skiprows=2)
 
-    df = df.apply(pd.to_numeric, errors='coerce')
-
-    wind_index = [1, 4, 5, 6, 7, 8, 9, 10, 11]
-    wind_speeds = df.iloc[152:, wind_index].mean(axis=1)
-    moments = df.iloc[152:, 24:30]
-
-    input = torch.tensor(wind_speeds.values)
-    output = torch.tensor(moments.values)
+    input = torch.tensor(df.iloc[1, ::].to_numpy())
+    output = torch.tensor(df.iloc[1:, ::].to_numpy())
 
     return input, output
 

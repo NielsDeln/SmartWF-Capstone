@@ -32,14 +32,14 @@ if __name__ == "__main__":
     }
 
     # Create the model
-    input_size = 1
-    hidden_size = 128
+    input_size = 1500
+    hidden_size = 1500
     num_layers = 2
-    output_size = 1
+    dropout = 0.2
     model = Should_model(input_size=input_size, 
                         hidden_size=hidden_size, 
                         num_layers=num_layers, 
-                        output_size=output_size,
+                        dropout=dropout
                         )
     
     
@@ -65,4 +65,4 @@ if __name__ == "__main__":
     # Evaluate the model and plot inference
     test_loss = evaluate(trained_model, dataloaders['test'], loss_fn, device=device)
 
-    plot_inference(trained_model, dataloaders['test'], device=device) # Needs to be altered to only plot inference for a couple of datapoints
+    plot_inference(trained_model, dataloaders['test'], num_inf=1, device=device) # Needs to be altered to only plot inference for a couple of datapoints

@@ -47,11 +47,11 @@ plt.grid(True)
 ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
 predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_rf)), columns=['Windspeed', 'STDeV', 'Leq'])
 
-plot_label_pred_3D(ground_truth, predictions, title='Random Forest Regressor')
-plot_err_3D(ground_truth, predictions, title='Random Forest Regressor')
+# plot_label_pred_3D(ground_truth, predictions, title='Random Forest Regressor')
+# plot_err_3D(ground_truth, predictions, title='Random Forest Regressor', error_type='absolute')
 
-plot_label_pred_2D(ground_truth, predictions, title='Random Forest Regressor', STDeV=all)
-plot_err_2D(ground_truth, predictions, title='Random Forest Regressor', STDeV=all, error_type='relative')
+# plot_label_pred_2D(ground_truth, predictions, title='Random Forest Regressor', STDeV=all)
+# plot_err_2D(ground_truth, predictions, title='Random Forest Regressor', STDeV=all, error_type='relative')
 
 plot_mean_error(ground_truth, predictions, title='Random Forest Regressor', variant='Windspeed', error_type='relative')
 plot_mean_error(ground_truth, predictions, title='Random Forest Regressor', variant='STDeV', error_type='relative')

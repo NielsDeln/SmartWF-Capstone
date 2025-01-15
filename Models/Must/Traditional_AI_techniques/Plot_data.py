@@ -42,6 +42,7 @@ def plot_data(must_df):
         ax2.legend()
         ax2.grid()
     plt.tight_layout()
+    plt.savefig()
 
 def plot_label_pred_3D(ground_truth, predictions=None, title:str=None):
     """
@@ -109,13 +110,13 @@ def plot_err_3D(ground_truth,
     elif error_type == 'percentage':
         zs2 = (prediction - label)/label * 100
     
-    ax.scatter(xs1, ys1, zs2, marker='o', label='Error')
+    ax.scatter(xs1, ys1, zs2, marker='o', label=f'{error_type} Error')
 
     # Set labels and title
     ax.set_xlabel('Windspeed')
     ax.set_ylabel('STDev')
     ax.set_zlabel('Relative Error')
-    ax.set_title(f'3D Scatter Plots, {error_type}, {title}')
+    ax.set_title(f'3D Scatter Plots, {error_type} error, {title}')
     
     ax.view_init(elev=20, azim=-122, roll=0)
     ax.legend()
@@ -192,42 +193,44 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
     else:
         raise ValueError('STDeV must be either a list, an integer or "all"')
 
-    fig, axs = plt.subplots(len(STDeV) // 2 + (len(STDeV) % 2 > 0), 2, figsize=(20, 5 * (len(STDeV) // 2 + (len(STDeV) % 2 > 0))))
-    axs = axs.flatten()
+    for i in range(0, len(STDeV), 6):
+        fig, axs = plt.subplots(3, 2, figsize=(20, 20))
+        axs = axs.flatten()
+        for j in range(6):
+            if i + j >= len(STDeV):
+                break
+            ax = axs[j]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
+                                        (ground_truth['Windspeed'] >= W_min) &
+                                        (ground_truth['Windspeed'] <= W_max)]
 
-    for i in range(len(STDeV)):
-        ax = axs[i]
-        Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
-                                    (ground_truth['Windspeed'] >= W_min) &
-                                    (ground_truth['Windspeed'] <= W_max)]
+            pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
+                                        (predictions['Windspeed'] >= W_min) &
+                                        (predictions['Windspeed'] <= W_max)]
 
-        pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
-                                    (predictions['Windspeed'] >= W_min) &
-                                    (predictions['Windspeed'] <= W_max)]
+            xs1 = pred_selection['Windspeed']
+            ys1 = pred_selection['STDeV']
+            label = Data_selection.iloc[:, 2]
+            prediction = pred_selection.iloc[:, 2]
 
-        xs1 = pred_selection['Windspeed']
-        ys1 = pred_selection['STDeV']
-        label = Data_selection.iloc[:, 2]
-        prediction = pred_selection.iloc[:, 2]
+            if error_type == 'absolute':
+                zs2 = (prediction - label)
+            elif error_type == 'relative':
+                zs2 = (prediction - label) / label
+            elif error_type == 'percentage':
+                zs2 = (prediction - label) / label * 100
 
-        if error_type == 'absolute':
-            zs2 = (prediction - label)
-        elif error_type == 'relative':
-            zs2 = (prediction - label) / label
-        elif error_type == 'percentage':
-            zs2 = (prediction - label) / label * 100
+            ax.scatter(xs1, zs2, marker='o', label=f'{error_type} Error')
 
-        ax.scatter(xs1, zs2, marker='o', label='Error')
+            ax.set_xlabel('Windspeed')
+            ax.set_ylabel(f'{error_type} Error')
+            ax.set_title(f'STDev={STDeV[i + j]}')
+            ax.legend()
+            ax.grid()
 
-        ax.set_xlabel('Windspeed')
-        ax.set_ylabel(f'{error_type} Error')
-        ax.set_title(f'STDev={STDeV[i]}')
-        ax.legend()
-        ax.grid()
-
-    [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
-    plt.suptitle(f'2D Scatter Plot, {error_type}, W_speeds: [{W_min},{W_max}]', y=1.05)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
+        [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
+        fig.subplots_adjust(hspace=0.4)
+        plt.suptitle(f'2D Scatter Plot, {error_type} error, W_speeds: [{W_min},{W_max}]')
 
 def plot_mean_error(ground_truth, 
                     predictions, 
@@ -250,34 +253,34 @@ def plot_mean_error(ground_truth,
     predictions['error'] = zs2
     mean_error = predictions.groupby(variant)['error'].mean()
     plt.figure()
-    plt.plot(mean_error.index, mean_error.values, label='Mean Error')
+    plt.plot(mean_error.index, mean_error.values, label=f'Mean {error_type} Error')
     plt.xlabel(variant)
     plt.ylabel(f'{error_type} Error')
     plt.title(f'{title}')
     plt.legend()
     plt.grid()
 
-must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
-# Plot Leq_x
-y = must_df['Leq_x'].to_numpy()
-X = must_df[['Windspeed', 'STDeV']].to_numpy()
-all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq_x'])
-plot_label_pred_3D(all_data, title='All Data, Leq_x')
-plot_label_pred_2D(all_data, title='All Data, Leq_x', STDeV=all)
-plt.show()
+# must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
+# # Plot Leq_x
+# y = must_df['Leq_x'].to_numpy()
+# X = must_df[['Windspeed', 'STDeV']].to_numpy()
+# all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq_x'])
+# plot_label_pred_3D(all_data, title='All Data, Leq_x')
+# plot_label_pred_2D(all_data, title='All Data, Leq_x', STDeV=all)
+# plt.show()
 
-# Plot Leq_y
-y = must_df['Leq_y'].to_numpy()
-X = must_df[['Windspeed', 'STDeV']].to_numpy()
-all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq_y'])
-plot_label_pred_3D(all_data, title='All Data, Leq_y')
-plot_label_pred_2D(all_data, title='All Data, Leq_y', STDeV=all)
-plt.show()
+# # Plot Leq_y
+# y = must_df['Leq_y'].to_numpy()
+# X = must_df[['Windspeed', 'STDeV']].to_numpy()
+# all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq_y'])
+# plot_label_pred_3D(all_data, title='All Data, Leq_y')
+# plot_label_pred_2D(all_data, title='All Data, Leq_y', STDeV=all)
+# plt.show()
 
-# Plot Leq_res
-y = must_df['Leq_res'].to_numpy()
-X = must_df[['Windspeed', 'STDeV']].to_numpy()
-all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq_res'])
-plot_label_pred_3D(all_data, title='All Data, Leq_res')
-plot_label_pred_2D(all_data, title='All Data, Leq_res', STDeV=all)
-plt.show()
+# # Plot Leq_res
+# y = must_df['Leq_res'].to_numpy()
+# X = must_df[['Windspeed', 'STDeV']].to_numpy()
+# all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'STDeV', 'Leq_res'])
+# plot_label_pred_3D(all_data, title='All Data, Leq_res')
+# plot_label_pred_2D(all_data, title='All Data, Leq_res', STDeV=all)
+# plt.show()

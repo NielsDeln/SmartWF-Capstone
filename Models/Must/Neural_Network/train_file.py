@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                                            loss_fn, optimizer, 
                                                            n_epochs, 
                                                            device=device, 
-                                                           early_stopping=None, 
+                                                           early_stopping=early_stopping, 
                                                            print_freq=10,
                                                            )
 

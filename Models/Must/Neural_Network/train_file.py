@@ -1,6 +1,6 @@
 import sys
 import os
-
+import time
 
 # Construct the path
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -17,6 +17,8 @@ from Models.Must.Neural_Network.Must_FNN import *
 
 if __name__ == "__main__":
     must_df = pd.read_csv(r"Models/Must/DEL_must_model.csv", sep='\t', header=0)
+    print("Start to train the model")
+    print("Start_time:", time.time())
 
     # Load the data
     train_data = must_df.iloc[:200][['Windspeed', 'STDeV']]
@@ -64,7 +66,7 @@ if __name__ == "__main__":
                                                            loss_fn, optimizer, 
                                                            n_epochs, 
                                                            device=device, 
-                                                           early_stopping=early_stopping, 
+                                                           early_stopping=None, 
                                                            print_freq=10,
                                                            )
 

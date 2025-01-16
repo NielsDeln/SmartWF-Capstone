@@ -29,8 +29,8 @@ class Should_model(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.dropout = dropout
-        self.hidden_state = nn.Parameter(torch.zeros(self.num_layers, 1, self.hidden_size))
-        self.cell_state = nn.Parameter(torch.zeros(self.num_layers, 1, self.hidden_size))
+        self.hidden_state = nn.Parameter(torch.zeros(self.num_layers, self.hidden_size))
+        self.cell_state = nn.Parameter(torch.zeros(self.num_layers, self.hidden_size))
 
         self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=self.dropout)
 

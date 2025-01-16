@@ -53,7 +53,7 @@ class EarlyStopping:
 
 
 def train_one_epoch(model: nn.Module, 
-                    dataset: Dataset, 
+                    dataloader: DataLoader, 
                     criterion: nn.modules.loss, 
                     optimizer: optim, 
                     device: torch.device=torch.device('cpu')
@@ -65,8 +65,8 @@ def train_one_epoch(model: nn.Module,
     -----------
     model: torch.nn.Module
         The model to train
-    dataset: Dataset
-        The training dataset
+    dataloader: torch.nn.utils.DataLoader
+        The training dataloader
     criterion: torch.nn.modules.loss
         The loss function
     optimizer: torch.optim
@@ -81,7 +81,7 @@ def train_one_epoch(model: nn.Module,
     """
     model.train()
     epoch_loss = 0
-    for data, target in dataset:
+    for data, target in dataloader:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
@@ -95,7 +95,8 @@ def train_one_epoch(model: nn.Module,
 
 
 def train(model: nn.Module, 
-          dataloader: DataLoader, 
+          train_dataloader: DataLoader, 
+          val_dataloader: DataLoader,
           criterion: nn.modules.loss, 
           optimizer: optim, 
           n_epochs: int,
@@ -110,8 +111,10 @@ def train(model: nn.Module,
     -----------
     model: torch.nn.Module
         The model to train
-    dataloader: torch.utils.data.DataLoader
-        The dataloader containing the training and validation data
+    train_dataloader: torch.utils.data.DataLoader
+        The dataloader containing the training data
+    val_dataloader: torch.utils.data.DataLoader
+        The dataloader containing the validation data
     criterion: torch.nn.modules.loss
         The loss function
     optimizer: torch.optim
@@ -150,11 +153,11 @@ def train(model: nn.Module,
     # Train the model
     for epoch in range(n_epochs):
         # Train for one epoch and append the loss to the loss history
-        train_epoch_loss = train_one_epoch(model, dataloader['train'], criterion, optimizer, device)
+        train_epoch_loss = train_one_epoch(model, train_dataloader, criterion, optimizer, device)
         train_loss_history.append(train_epoch_loss)
 
         # Evaluate the model on the validation set
-        val_epoch_loss = evaluate(model, dataloader['val'], criterion, device)
+        val_epoch_loss = evaluate(model, val_dataloader, criterion, device)
         val_loss_history.append(val_epoch_loss)
 
         # Print the loss
@@ -180,7 +183,7 @@ def train(model: nn.Module,
 
 
 def evaluate(model: nn.Module, 
-             dataset: Dataset, 
+             dataloader: DataLoader, 
              criterion: nn.modules.loss, 
              device: torch.device=torch.device('cpu')
              ) -> float:
@@ -206,7 +209,7 @@ def evaluate(model: nn.Module,
     model.eval()
     loss = 0
     with torch.no_grad():
-        for data, target in dataset:
+        for data, target in dataloader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss += criterion(output, target).item()

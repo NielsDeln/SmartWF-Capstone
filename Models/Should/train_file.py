@@ -5,23 +5,16 @@ from Models.Should.Should_LSTM import *
 if __name__ == "__main__":
     # Load the data
     dataset_path = 'data/should_data/' # Replace in Kaggle with actual dataset path
-    output_list = os.listdir(os.path.join(dataset_path, 'outputs'))
-    input_list = os.listdir(os.path.join(dataset_path, 'inputs'))
+    file_list = os.listdir(dataset_path)
 
     # Split the data
-    data_list = pd.DataFrame([input_list, output_list]).T
-    train_data, test_data, validation_data = split_dataset(data_list, test_size=0.15, validation_size=0.15)
-
-    # Split features and labels
-    train_features, train_labels = train_data.iloc[:, 0], train_data.iloc[:, 1]
-    validation_features, validation_labels = validation_data.iloc[:, 0], validation_data.iloc[:, 1]
-    test_features, test_labels = test_data.iloc[:, 0], test_data.iloc[:, 1]
+    train_data, test_data, validation_data = split_dataset(file_list, test_size=0.15, validation_size=0.15)
 
     # Create the dataset
     datasets = {
-        'train': Should_Dataset(train_features, train_labels),
-        'validation': Should_Dataset(validation_features, validation_labels),
-        'test': Should_Dataset(test_features, test_labels)
+        'train': Should_Dataset(dataset_path, train_data),
+        'validation': Should_Dataset(dataset_path, validation_data),
+        'test': Should_Dataset(dataset_path, test_data)
     }
 
     # Create the dataloader

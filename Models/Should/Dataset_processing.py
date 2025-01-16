@@ -33,11 +33,11 @@ class Should_Dataset(Dataset):
         return len(self.data)
         
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
-        input, labels = load_input_output_tensor(self.dataset_path, self.data, index, self.load_axis)
+        input, labels, time = load_input_output_tensor(self.dataset_path, self.data, index, self.load_axis)
 
         if self.transforms is not None:
-            return self.transforms(input, labels)
-        return input, labels
+            return self.transforms(input, labels), time
+        return input, labels, time
 
 
 def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, load_axis: str) -> tuple[torch.Tensor, torch.Tensor]:
@@ -61,6 +61,8 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, l
         The input tensor
     output: torch.Tensor
         The output tensor
+    time: torch.Tensor
+        The time tensor
     """
     file_path = os.path.join(dataset_path, data[idx])
 
@@ -69,15 +71,16 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, l
                      header=None, 
                      skiprows=3)
 
-    input = torch.tensor(df.iloc[::, 1].to_numpy())
+    input = torch.tensor(df.iloc[::, 1].to_numpy(), dtype=torch.float32)
+    time = torch.tensor(df.iloc[::, 0].to_numpy(), dtype=torch.float32)
     if load_axis == 'Mxb1':
-        output = torch.tensor(df.iloc[::, 2].to_numpy())
+        output = torch.tensor(df.iloc[::, 2].to_numpy(), dtype=torch.float32)
     elif load_axis == 'Myb1':
-        output = torch.tensor(df.iloc[::, 3].to_numpy())
+        output = torch.tensor(df.iloc[::, 3].to_numpy(), dtype=torch.float32)
     else:
         raise ValueError(f'load_axis must be either Mxb1 or Myb1, got {load_axis}')
 
-    return input, output
+    return input, output, time
 
 
 def split_dataset(data_list: Iterable, test_size: float, validation_size: float, random_state: int=42) -> tuple[Iterable[str], ...]:
@@ -116,8 +119,3 @@ def split_dataset(data_list: Iterable, test_size: float, validation_size: float,
                                                   )
 
     return train_data, test_data, validation_data
-
-
-if __name__ == '__main__':
-    dataset_path = "/Users/niels/Desktop/TU Delft/Dataset/chunks/"
-    test_dataset = Should_Dataset(dataset_path, os.listdir(dataset_path), 'Mxb1')

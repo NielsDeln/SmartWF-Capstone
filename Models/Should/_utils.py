@@ -46,10 +46,13 @@ class EarlyStopping:
         else:
             self.best_score = val_loss
             self.counter = 0
-            torch.save(model.state_dict(), f'/Models/Should/Trained_Models/best_model_{date.today()}.pt')
+            torch.save(model.state_dict(), f'/kaggle/working/best_model_{date.today()}.pt')
 
     def load_best_model(self, model: nn.Module) -> None:
-        model.load_state_dict(torch.load(f'/Models/Should/Trained_Models/best_model_{date.today()}.pt'))
+        model.load_state_dict(torch.load(f'/kaggle/working/best_model_{date.today()}.pt', weights_only=True))
+
+    def save_best_model(self, model: nn.Module) -> None:
+        torch.save(model.state_dict(), f'/kaggle/working/best_model_{date.today()}.pt')
 
 
 def train_one_epoch(model: nn.Module, 
@@ -81,7 +84,7 @@ def train_one_epoch(model: nn.Module,
     """
     model.train()
     epoch_loss = 0
-    for data, target in dataloader:
+    for data, target, _ in dataloader:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
@@ -209,7 +212,7 @@ def evaluate(model: nn.Module,
     model.eval()
     loss = 0
     with torch.no_grad():
-        for data, target in dataloader:
+        for data, target, _ in dataloader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss += criterion(output, target).item()
@@ -267,18 +270,19 @@ def plot_inference(model: nn.Module,
         raise ValueError('Number of inferences must be an integer greater than 0') 
 
     model.eval()
+    model.to(device)
     count = 0
     with torch.no_grad():
-        for data, target in dataloader:
+        for data, target, time in dataloader:
             data = data.to(device)
             output = model(data)
             plt.figure()
-            plt.plot(data, target, label='True')
-            plt.plot(data, output.to('cpu'), label='Predicted')
+            plt.plot(time[0].to('cpu'), target[0].to('cpu'), label='True')
+            plt.plot(time[0].to('cpu'), output[0].to('cpu'), label='Predicted')
             plt.legend()
             plt.show()
 
-            # Break if the number of inferences is reached
+            # Break loop if number of inferences is reached
             count += 1
-            if count == num_inf:
+            if count >= num_inf:
                 break

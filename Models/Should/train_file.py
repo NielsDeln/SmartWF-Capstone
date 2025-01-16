@@ -10,11 +10,14 @@ if __name__ == "__main__":
     # Split the data
     train_data, test_data, validation_data = split_dataset(file_list, test_size=0.15, validation_size=0.15)
 
+    # Specify the load axis used
+    load_axis = 'Mxb1'
+
     # Create the dataset
     datasets = {
-        'train': Should_Dataset(dataset_path, train_data),
-        'validation': Should_Dataset(dataset_path, validation_data),
-        'test': Should_Dataset(dataset_path, test_data)
+        'train': Should_Dataset(dataset_path, train_data, load_axis),
+        'validation': Should_Dataset(dataset_path, validation_data, load_axis),
+        'test': Should_Dataset(dataset_path, test_data, load_axis)
     }
 
     # Create the dataloader

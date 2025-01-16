@@ -148,7 +148,7 @@ def train(model: nn.Module,
         stop_condition = EarlyStopping(patience=early_stopping, delta=0)
 
     # Train the model
-    for epoch in n_epochs:
+    for epoch in range(n_epochs):
         # Train for one epoch and append the loss to the loss history
         train_epoch_loss = train_one_epoch(model, dataloader['train'], criterion, optimizer, device)
         train_loss_history.append(train_epoch_loss)

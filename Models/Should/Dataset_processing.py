@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 
 
 class Should_Dataset(Dataset):
-    def __init__(self, dataset_path, data, labels, transforms=None) -> None:
+    def __init__(self, dataset_path, data, transforms=None) -> None:
         """
         Initializes the Should_Dataset class.
 
@@ -19,14 +19,11 @@ class Should_Dataset(Dataset):
             The path to the dataset
         data: Iterable[str]
             List of file names
-        labels: Iterable[str]
-            List of labels
         transforms: callable
             A function/transform that takes input sample and its target as entry and returns a transformed version
         """
         self.dataset_path = dataset_path
         self.data = data
-        self.labels = labels
         self.transforms = transforms
 
     def __len__(self) -> int:

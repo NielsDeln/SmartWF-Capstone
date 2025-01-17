@@ -42,7 +42,6 @@ def plot_data(must_df):
         ax2.legend()
         ax2.grid()
     plt.tight_layout()
-    plt.savefig()
 
 def plot_label_pred_3D(ground_truth, predictions=None, title:str=None):
     """
@@ -104,11 +103,11 @@ def plot_err_3D(ground_truth,
     label = ground_truth.iloc[:,2]
     prediction = predictions.iloc[:,2]
     if error_type == 'absolute':
-        zs2 = (prediction - label)
+        zs2 = abs(prediction - label)
     elif error_type == 'relative':
-        zs2 = (prediction - label)/label
+        zs2 = abs(prediction - label)/label
     elif error_type == 'percentage':
-        zs2 = (prediction - label)/label * 100
+        zs2 = abs(prediction - label)/label * 100
     
     ax.scatter(xs1, ys1, zs2, marker='o', label=f'{error_type} Error')
 
@@ -186,7 +185,7 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
     if STDeV == all:
         STDeV = list(np.arange(0.25, 2.75, 0.25))
         # STDeV = ground_truth['STDeV'].unique()
-    elif type(STDeV) == int:
+    elif type(STDeV) == float:
         if STDeV not in set(np.arange(0.25, 2.75, 0.25)):
             raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
         STDeV = [STDeV]
@@ -221,11 +220,11 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
             prediction = pred_selection.iloc[:, 2]
 
             if error_type == 'absolute':
-                zs2 = (prediction - label)
+                zs2 = abs(prediction - label)
             elif error_type == 'relative':
-                zs2 = (prediction - label) / label
+                zs2 = abs(prediction - label) / label
             elif error_type == 'percentage':
-                zs2 = (prediction - label) / label * 100
+                zs2 = abs(prediction - label) / label * 100
 
             ax.scatter(xs1, zs2, marker='o', label=f'{error_type} Error')
 

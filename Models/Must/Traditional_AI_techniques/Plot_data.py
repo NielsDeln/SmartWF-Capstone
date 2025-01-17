@@ -210,9 +210,9 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
             # pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
             #                             (predictions['Windspeed'] >= W_min) &
             #                             (predictions['Windspeed'] <= W_max)]
-            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i])]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[j])]
 
-            pred_selection = predictions[(predictions['STDeV'] == STDeV[i])]
+            pred_selection = predictions[(predictions['STDeV'] == STDeV[j])]
 
             xs1 = pred_selection['Windspeed']
             ys1 = pred_selection['STDeV']

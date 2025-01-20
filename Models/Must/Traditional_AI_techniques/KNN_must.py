@@ -82,12 +82,20 @@ all_data = pd.DataFrame(np.column_stack((X[:,:2], y)), columns=['Windspeed', 'ST
 ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['Windspeed', 'STDeV', 'Leq'])
 predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_knn_best)), columns=['Windspeed', 'STDeV', 'Leq'])
 
+# ground_truth_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+
+# print(average_samples)
 # plot_label_pred_3D(ground_truth, predictions, title='KNN Regressor\nLeq_y')
 # plot_err_3D(ground_truth, predictions, title='KNN Regressor\nLeq_y')
 
 # plot_label_pred_2D(ground_truth, predictions, title='KNN Regressor\nLeq_y',STDeV=all)
-plot_err_2D(ground_truth, predictions, title='KNN Regressor\nLeq_y',STDeV=all, error_type='relative')
+# plot_err_2D(ground_truth, predictions, title='KNN Regressor\nLeq_y',STDeV=all, error_type='relative')
 
 # plot_mean_error(ground_truth, predictions, title='KNN Regressor\nLeq_y', variant='Windspeed', error_type='relative')
 # plot_mean_error(ground_truth, predictions, title='KNN Regressor\nLeq_y', variant='STDeV', error_type='relative')
+
+# plot_pred_mean__err_2D(ground_truth, predictions, title='KNN Regressor\nLeq_y', error_type='relative')
+plot_label_pred_2D_mean(ground_truth, predictions, title='KNN Regressor\nLeq_y', STDeV=1.75)
+
 plt.show()

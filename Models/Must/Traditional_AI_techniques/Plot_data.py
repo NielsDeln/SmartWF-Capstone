@@ -210,9 +210,8 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
             # pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
             #                             (predictions['Windspeed'] >= W_min) &
             #                             (predictions['Windspeed'] <= W_max)]
-            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[j])]
-
-            pred_selection = predictions[(predictions['STDeV'] == STDeV[j])]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i+j])]
+            pred_selection = predictions[(predictions['STDeV'] == STDeV[i+j])]
 
             xs1 = pred_selection['Windspeed']
             ys1 = pred_selection['STDeV']
@@ -265,6 +264,150 @@ def plot_mean_error(ground_truth,
     plt.title(f'{title}')
     plt.legend()
     plt.grid()
+
+def plot_label_pred_2D_mean(ground_truth, 
+                       predictions=None, 
+                       title:str=None,
+                       W_min=5, 
+                       W_max=25, 
+                       STDeV:list|str|int=all, 
+                       ):
+    if STDeV == all:
+            STDeV = list(np.arange(0.25,2.75,0.25))
+            # STDeV = ground_truth['STDeV'].unique()
+    elif isinstance(STDeV, float):
+            if STDeV not in set(np.arange(0.25,2.75,0.25)):
+                raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
+            STDeV = [STDeV]
+    elif isinstance(STDeV, list):
+            for STDeV_value in STDeV:  
+                if STDeV_value not in set(np.arange(0.25,2.5,0.25)):
+                    raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
+    else:
+            raise ValueError('STDeV must be either a list, an float or "all"')
+            if len(STDeV) > 6:
+                raise ValueError('The number of STDeV values must be 6 or less.')
+
+    ground_truth_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+    if predictions is not None:
+        predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+
+    for i in range(0, len(STDeV), 6):
+        fig, axs = plt.subplots(3, 2, figsize=(20, 20))
+        axs = axs.flatten()
+        for j in range(6):
+            if i + j >= len(STDeV):
+                break
+            ax = axs[j]
+
+            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
+            #             (ground_truth['Windspeed'] >= W_min) & 
+            #             (ground_truth['Windspeed'] <= W_max)]
+            
+            GT_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j])]
+            GT_selection_average = ground_truth_average[(ground_truth_average['STDeV'] == STDeV[i + j])].iloc[:, 2]
+
+            # Labels
+            xs1 = GT_selection['Windspeed']
+            zs1 = GT_selection.iloc[:,2]
+            ax.scatter(xs1, zs1, marker='s', label='Ground Truth')
+
+            # Average of labels
+            ax.scatter(xs1.unique(),GT_selection_average, marker='x', label='Average Leq Labels')
+
+            # Predictions
+            if predictions is not None:
+                # pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
+                #             (predictions['Windspeed'] >= W_min) & 
+                #             (predictions['Windspeed'] <= W_max)]
+                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j])]
+                pred_selection_average = predictions_average[(predictions_average['STDeV'] == STDeV[i + j])].iloc[:, 2]
+
+                # PREDICTIONS
+                xs2 = pred_selection['Windspeed']
+                zs2 = pred_selection.iloc[:,2]
+                ax.scatter(xs2, zs2, marker='2', label='Predictions')
+
+                # Average of predictions
+                ax.scatter(xs2.unique(),pred_selection_average, marker='o', label='Average Predictions')
+            
+
+            # Set labels and title
+            ax.set_xlabel('Windspeed')
+            ax.set_ylabel('Leq')
+            ax.set_title(f'STDev={STDeV[i + j]}')
+            ax.legend()
+            ax.grid()
+        # Adjust layout
+        [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
+        fig.subplots_adjust(hspace=0.4)
+        plt.suptitle(f'2D Scatter Plot \nLabel and prediction\n{title}\nW_speeds: [{W_min},{W_max}]')
+
+
+def plot_pred_mean__err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
+    if STDeV == all:
+        STDeV = list(np.arange(0.25, 2.75, 0.25))
+        # STDeV = ground_truth['STDeV'].unique()
+    elif type(STDeV) == float:
+        if STDeV not in set(np.arange(0.25, 2.75, 0.25)):
+            raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
+        STDeV = [STDeV]
+    elif type(STDeV) == list:
+        for STDeV_value in STDeV:
+            if STDeV_value not in set(np.arange(0.25, 2.5, 0.25)):
+                raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
+    else:
+        raise ValueError('STDeV must be either a list, an integer or "all"')
+
+    average_samples = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+    print(ground_truth)
+    print(average_samples)
+    for i in range(0, len(STDeV), 6):
+        fig, axs = plt.subplots(3, 2, figsize=(20, 20))
+        axs = axs.flatten()
+        for j in range(6):
+            if i + j >= len(STDeV):
+                break
+            ax = axs[j]
+            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
+            #                             (ground_truth['Windspeed'] >= W_min) &
+            #                             (ground_truth['Windspeed'] <= W_max)]
+
+            # pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
+            #                             (predictions['Windspeed'] >= W_min) &
+            #                             (predictions['Windspeed'] <= W_max)]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i+j])]
+            
+            # print(Data_selection)
+            pred_selection = predictions[(predictions['STDeV'] == STDeV[i+j])]
+            average_selection = average_samples[(average_samples['STDeV'] == STDeV[i+j])].iloc[:, 2]
+
+            xs1 = pred_selection['Windspeed']
+            ys1 = pred_selection['STDeV']
+            label = Data_selection.iloc[:, 2]
+            prediction = pred_selection.iloc[:, 2]
+
+            if error_type == 'absolute':
+                zs2 = abs(prediction - label)
+            elif error_type == 'relative':
+                zs2 = abs(prediction - label) / label
+            elif error_type == 'percentage':
+                zs2 = abs(prediction - label) / label * 100
+
+            ax.scatter(xs1, zs2, marker='o', label=f'{error_type} Error')
+            # print(average_samples)
+
+            ax.scatter(xs1,average_selection, marker='s', label='Average Leq')
+            ax.set_xlabel('Windspeed')
+            ax.set_ylabel(f'{error_type} Error')
+            ax.set_title(f'STDev={STDeV[i + j]}')
+            ax.legend()
+            ax.grid()
+
+        [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
+        fig.subplots_adjust(hspace=0.4)
+        plt.suptitle(f'2D Scatter Plot, {error_type} error, W_speeds: [{W_min},{W_max}]\n{title}')
+
 
 # must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
 # # Plot Leq_x

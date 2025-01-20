@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
 import matplotlib.pyplot as plt
 from collections.abc import Iterable
@@ -84,7 +84,7 @@ def train_one_epoch(model: nn.Module,
     """
     model.train()
     epoch_loss = 0
-    for data, target, _ in dataloader:
+    for data, target, _, _, _ in dataloader:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
@@ -212,7 +212,7 @@ def evaluate(model: nn.Module,
     model.eval()
     loss = 0
     with torch.no_grad():
-        for data, target, _ in dataloader:
+        for data, target, _, _, _ in dataloader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss += criterion(output, target).item()
@@ -273,12 +273,17 @@ def plot_inference(model: nn.Module,
     model.to(device)
     count = 0
     with torch.no_grad():
-        for data, target, time in dataloader:
+        for data, target, time, label_mean, label_std in dataloader:
             data = data.to(device)
             output = model(data)
+            
+            # Take only the first item in the batch and remove standardization
+            time = time[0].to('cpu')
+            target = target[0].to('cpu') * label_std[0] + label_mean[0]
+            output = output[0].to('cpu') * label_std[0] + label_mean[0]
             plt.figure()
-            plt.plot(time[0].to('cpu'), target[0].to('cpu'), label='True')
-            plt.plot(time[0].to('cpu'), output[0].to('cpu'), label='Predicted')
+            plt.plot(time, target, label='True')
+            plt.plot(time, output, label='Predicted')
             plt.legend()
             plt.show()
 

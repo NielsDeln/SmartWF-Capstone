@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import pandas as pd
 from collections.abc import Iterable
 
@@ -34,10 +35,15 @@ class Should_Dataset(Dataset):
         
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         input, labels, time = load_input_output_tensor(self.dataset_path, self.data, index, self.load_axis)
+        input[::, 1] = np.sin(input[::, 1]*np.pi/180) # convert azimuth axis to sinusodial function
+        
+        label_mean = torch.mean(labels)
+        label_std = torch.std(labels)
+        labels = (labels - label_mean)/label_std # normalize the data
 
         if self.transforms is not None:
-            return self.transforms(input, labels), time
-        return input, labels, time
+            return self.transforms(input, labels), time, label_mean, label_std
+        return input, labels, time, label_mean, label_std
 
 
 def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, load_axis: str) -> tuple[torch.Tensor, torch.Tensor]:
@@ -71,12 +77,12 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, l
                      header=None, 
                      skiprows=3)
 
-    input = torch.tensor(df.iloc[::, 1].to_numpy(), dtype=torch.float32)
-    time = torch.tensor(df.iloc[::, 0].to_numpy(), dtype=torch.float32)
+    input = torch.reshape(torch.tensor(df.iloc[::, [1, 2]].to_numpy(), dtype=torch.float32), (1500, 2))
+    time = torch.reshape(torch.tensor(df.iloc[::, 0].to_numpy(), dtype=torch.float32), (1500, 1))
     if load_axis == 'Mxb1':
-        output = torch.tensor(df.iloc[::, 2].to_numpy(), dtype=torch.float32)
+        output = torch.reshape(torch.tensor(df.iloc[::, 3].to_numpy(), dtype=torch.float32), (1500, 1))
     elif load_axis == 'Myb1':
-        output = torch.tensor(df.iloc[::, 3].to_numpy(), dtype=torch.float32)
+        output = torch.reshape(torch.tensor(df.iloc[::, 4].to_numpy(), dtype=torch.float32), (1500, 1))
     else:
         raise ValueError(f'load_axis must be either Mxb1 or Myb1, got {load_axis}')
 

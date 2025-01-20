@@ -30,7 +30,7 @@ def chunk_dataset(dataset_path, chunk_size):
         df_data = pd.read_csv(file_path, delim_whitespace=True, header=None, skiprows=6)
 
         # Define the columns to keep
-        columns_keep = [0, 1, 24, 25]
+        columns_keep = [0, 1, 12, 24, 25]
 
         # Split the dataset into a header and other data
         df_header = df_data.iloc[:2, columns_keep]

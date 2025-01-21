@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
+import numpy as np
 import matplotlib.pyplot as plt
 from collections.abc import Iterable
 from datetime import date
@@ -28,7 +29,7 @@ class EarlyStopping:
         self.early_stop: bool = False
         self.counter: int = 0
 
-    def __call__(self, val_loss: float, model: nn.Module) -> None:
+    def __call__(self, val_loss: float, model: nn.Module, save_directory:str) -> None:
         """
         Calls the EarlyStopping class.
 
@@ -38,6 +39,8 @@ class EarlyStopping:
             The validation loss
         model: torch.nn.Module
             The model to save if an improvement is seen
+        save_directory: str
+            The directory to save the model
         """
         if val_loss > self.best_score - self.delta:
             self.counter += 1
@@ -46,13 +49,10 @@ class EarlyStopping:
         else:
             self.best_score = val_loss
             self.counter = 0
-            torch.save(model.state_dict(), f'/kaggle/working/best_model_{date.today()}.pt')
+            torch.save(model.state_dict(), f'{save_directory}/model_{date.today()}_val_loss{val_loss:.3f}.pt')
 
-    def load_best_model(self, model: nn.Module) -> None:
-        model.load_state_dict(torch.load(f'/kaggle/working/best_model_{date.today()}.pt', weights_only=True))
-
-    def save_best_model(self, model: nn.Module) -> None:
-        torch.save(model.state_dict(), f'/kaggle/working/best_model_{date.today()}.pt')
+    def load_best_model(self, model: nn.Module, val_loss, save_directory) -> None:
+        model.load_state_dict(torch.load(f'{save_directory}/model_{date.today()}_val_loss{val_loss:.3f}.pt', weights_only=True))
 
 
 def train_one_epoch(model: nn.Module, 
@@ -84,7 +84,7 @@ def train_one_epoch(model: nn.Module,
     """
     model.train()
     epoch_loss = 0
-    for data, target, _, _, _ in dataloader:
+    for data, target, _ in dataloader:
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
@@ -103,6 +103,7 @@ def train(model: nn.Module,
           criterion: nn.modules.loss, 
           optimizer: optim, 
           n_epochs: int,
+          save_directory: str,
           device: torch.device=torch.device('cpu'),
           early_stopping: int=-1,
           print_freq: int=10
@@ -124,6 +125,8 @@ def train(model: nn.Module,
         The optimizer
     n_epochs: int
         The number of epochs to train for
+    save_directory: str
+        The directory to save the model
     device: torch.device
         The device to use for training
     early_stopping: int
@@ -145,7 +148,6 @@ def train(model: nn.Module,
     """
     model.to(device)
 
-    best_loss = float('inf')
     train_loss_history: list = []
     val_loss_history: list = []
 
@@ -155,6 +157,8 @@ def train(model: nn.Module,
 
     # Train the model
     for epoch in range(n_epochs):
+        if epoch % print_freq == 0:
+            print(f'Epoch {epoch+1}/{n_epochs}:\n------------')
         # Train for one epoch and append the loss to the loss history
         train_epoch_loss = train_one_epoch(model, train_dataloader, criterion, optimizer, device)
         train_loss_history.append(train_epoch_loss)
@@ -165,23 +169,19 @@ def train(model: nn.Module,
 
         # Print the loss
         if epoch % print_freq == 0:
-            print(f'Epoch {epoch+1}/{n_epochs}:\n------------\nTraining Loss {train_epoch_loss}, Validation Loss {val_epoch_loss}')
+            print(f'Training Loss {train_epoch_loss}, Validation Loss {val_epoch_loss}')
 
         # Save the model if best loss is seen
-        if val_epoch_loss < best_loss:
-            best_loss = val_epoch_loss
-            stop_condition.save_best_model(model) 
-        
         if early_stopping >= -1 and isinstance(early_stopping, int):
-            stop_condition(val_epoch_loss, model)
+            stop_condition(val_epoch_loss, model, save_directory)
         elif early_stopping <= -1 or not isinstance(early_stopping, int):
             raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
         
         if stop_condition.early_stop:
-            print(f'Early stopping at epoch {epoch+1}')
+            print(f'Early stopping at epoch {epoch+1}. \nModel at epoch {epoch} will be loaded.')
             break
     
-    stop_condition.load_best_model(model)
+    stop_condition.load_best_model(model, np.min(val_loss_history), save_directory)
     return model, train_loss_history, val_loss_history
 
 
@@ -212,7 +212,7 @@ def evaluate(model: nn.Module,
     model.eval()
     loss = 0
     with torch.no_grad():
-        for data, target, _, _, _ in dataloader:
+        for data, target, _ in dataloader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             loss += criterion(output, target).item()
@@ -248,6 +248,8 @@ def plot_losses(train_loss_history: Iterable, val_loss_history: Iterable) -> Non
 
 def plot_inference(model: nn.Module, 
                    dataloader: DataLoader, 
+                   labels_mean: float, 
+                   labels_stdev: float,
                    num_inf: int=1,
                    device: torch.device=torch.device('cpu')
                    ) -> None:
@@ -260,6 +262,10 @@ def plot_inference(model: nn.Module,
         The model to evaluate
     dataloader: torch.utils.data.DataLoader
         The dataloader to plot inference on
+    labels_mean: float
+        The mean of the training labels used to denormalize the data
+    labels_stdev: float
+        The standard deviation of the training labels used to denormalize the data
     num_inf: int
         The number of inferences to plot
         default: 1
@@ -273,17 +279,19 @@ def plot_inference(model: nn.Module,
     model.to(device)
     count = 0
     with torch.no_grad():
-        for data, target, time, label_mean, label_std in dataloader:
+        for data, target, time in dataloader:
             data = data.to(device)
             output = model(data)
             
-            # Take only the first item in the batch and remove standardization
+            # Take only the first item in the batch and remove normalization
             time = time[0].to('cpu')
-            target = target[0].to('cpu') * label_std[0] + label_mean[0]
-            output = output[0].to('cpu') * label_std[0] + label_mean[0]
+            target = target[0].to('cpu') * labels_stdev + labels_mean
+            output = output[0].to('cpu') * labels_stdev + labels_mean
             plt.figure()
             plt.plot(time, target, label='True')
             plt.plot(time, output, label='Predicted')
+            plt.xlabel('Time (s)')
+            plt.ylabel('Bending moment (kN-m)')
             plt.legend()
             plt.show()
 

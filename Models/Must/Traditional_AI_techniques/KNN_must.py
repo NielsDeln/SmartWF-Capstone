@@ -19,7 +19,7 @@ from sklearn.metrics import mean_absolute_error
 
 
 from Models.Must.Traditional_AI_techniques.Plot_data import *
-must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')
+must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model_repetition_0.csv', sep='\t')
 # print(must_df)
 
 y = must_df['Leq_y'].to_numpy()
@@ -35,11 +35,12 @@ X_test = scaler.transform(X_test)
 
 # TRAINING
 knn = KNeighborsRegressor()
-knn_param_grid = {
-    'n_neighbors': [3, 5, 10, 15],
-    'weights': ['uniform', 'distance'],
-    'p': [1, 2]
- }
+# knn_param_grid = {
+#     'n_neighbors': [3, 5, 10, 15],
+#     'weights': ['uniform', 'distance'],
+#     'p': [1, 2]
+#  }
+knn_param_grid = {'n_neighbors': [3], 'weights': ['distance'], 'p': [2]}
 
 knn_grid_search = GridSearchCV(knn, knn_param_grid, cv=5, scoring='neg_mean_absolute_error')
 knn_grid_search.fit(X_train, y_train)
@@ -83,7 +84,7 @@ ground_truth = pd.DataFrame(np.column_stack((X_test[:,:2], y_test)), columns=['W
 predictions = pd.DataFrame(np.column_stack((X_test[:,:2], predictions_knn_best)), columns=['Windspeed', 'STDeV', 'Leq'])
 
 # ground_truth_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
-predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+# predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
 
 # print(average_samples)
 # plot_label_pred_3D(ground_truth, predictions, title='KNN Regressor\nLeq_y')
@@ -95,7 +96,6 @@ predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().
 # plot_mean_error(ground_truth, predictions, title='KNN Regressor\nLeq_y', variant='Windspeed', error_type='relative')
 # plot_mean_error(ground_truth, predictions, title='KNN Regressor\nLeq_y', variant='STDeV', error_type='relative')
 
-# plot_pred_mean__err_2D(ground_truth, predictions, title='KNN Regressor\nLeq_y', error_type='relative')
-plot_label_pred_2D_mean(ground_truth, predictions, title='KNN Regressor\nLeq_y', STDeV=1.75)
-
+plot_label_pred_2D_mean(ground_truth, predictions, title='KNN Regressor\nLeq_y')
+plot_pred_error_2D_mean(ground_truth, predictions, title= 'KNN Regressor \nLeq_y')
 plt.show()

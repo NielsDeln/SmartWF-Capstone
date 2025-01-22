@@ -1,5 +1,6 @@
 import os
 import sys
+import glob
 # Construct the path
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 # print(path)
@@ -19,8 +20,16 @@ from sklearn.metrics import mean_absolute_error
 
 
 from Models.Must.Traditional_AI_techniques.Plot_data import *
-must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model_repetition_0.csv', sep='\t')
-# print(must_df)
+
+path = r"C:\Users\HugoP\Desktop\SmartWF-Capstone\Models\Must\\" # use your path
+all_files = glob.glob(os.path.join(path , "*.csv"))
+li = []
+
+for filename in all_files:
+    df = pd.read_csv(filename, index_col=None, header=0, sep="\t")
+    li.append(df)
+
+must_df = pd.concat(li, axis=0, ignore_index=True)
 
 y = must_df['Leq_y'].to_numpy()
 X = must_df[['Windspeed', 'STDeV']].to_numpy()
@@ -35,12 +44,12 @@ X_test = scaler.transform(X_test)
 
 # TRAINING
 knn = KNeighborsRegressor()
-# knn_param_grid = {
-#     'n_neighbors': [3, 5, 10, 15],
-#     'weights': ['uniform', 'distance'],
-#     'p': [1, 2]
-#  }
-knn_param_grid = {'n_neighbors': [3], 'weights': ['distance'], 'p': [2]}
+knn_param_grid = {
+    'n_neighbors': [3, 5, 10, 15],
+    'weights': ['uniform', 'distance'],
+    'p': [1, 2]
+ }
+# knn_param_grid = {'n_neighbors': [3], 'weights': ['distance'], 'p': [2]}
 
 knn_grid_search = GridSearchCV(knn, knn_param_grid, cv=5, scoring='neg_mean_absolute_error')
 knn_grid_search.fit(X_train, y_train)

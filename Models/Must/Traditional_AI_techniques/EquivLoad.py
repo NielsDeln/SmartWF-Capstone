@@ -16,18 +16,19 @@ must_df = pd.DataFrame(columns = columns)
 # Julia
 output_dir = r"C:\Users\Jwoon\Desktop\All must data"
 # Hugo
-output_dir = r"C:\Users\HugoP\Desktop\SmartWF-My local datasets\Must_Should_Dataset_complete\Outputs"
-
+output_dir = r"C:\Users\HugoP\OneDrive - Delft University of Technology\Year3\Q2 Capstone AI project\General\Should_dataset\Must_Should_Dataset_rep_3"
 
 counter = 0
 # Loop through all files in the directory
 for filename in os.listdir(output_dir):
         if counter < 5000:
-              
+            print(filename)
             # Build the full file path
             file_path = os.path.join(output_dir, filename)
             if file_path.endswith('.txt'):
                 continue
+            elif file_path.endswith('.ini'):
+                 continue
             df = FASTOutputFile(file_path).toDataFrame()
 
             match = re.match(r"w(\d+\.\d+)_s(\d+\.\d+)_", filename)
@@ -52,4 +53,4 @@ for filename in os.listdir(output_dir):
 must_df = must_df.sort_values(by='Windspeed', ascending=True)
 print(must_df)
 
-must_df.to_csv(path_or_buf='..\DEL_must_model.csv', sep='\t', index=True, header=True)
+must_df.to_csv(path_or_buf='..\DEL_must_model_rep_3.csv', sep='\t', index=True, header=True)

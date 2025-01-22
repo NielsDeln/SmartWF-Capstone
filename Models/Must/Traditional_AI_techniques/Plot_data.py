@@ -174,7 +174,7 @@ def plot_label_pred_2D(ground_truth,
             ax.set_xlabel('Windspeed')
             ax.set_ylabel('Leq')
             ax.set_title(f'STDev={STDeV[i + j]}')
-            ax.legend()
+            # ax.legend()
             ax.grid()
         # Adjust layout
         [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]

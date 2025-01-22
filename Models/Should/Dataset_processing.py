@@ -10,7 +10,14 @@ from sklearn.model_selection import train_test_split
 
 
 class Should_Dataset(Dataset):
-    def __init__(self, dataset_path, data, load_axis, transforms=None) -> None:
+    def __init__(self, 
+                 dataset_path: str, 
+                 data: Iterable[str], 
+                 load_axis: str, 
+                 label_mean: float | None=None, 
+                 label_std: float | None=None, 
+                 transforms=None,
+                ) -> None:
         """
         Initializes the Should_Dataset class.
 
@@ -22,13 +29,22 @@ class Should_Dataset(Dataset):
             List of file names
         load_axis: str
             The axis to load the data
+        label_mean: float | None
+            The mean value for label normalization
+        label_std: float | None
+            The standard deviation value for label normalization
         transforms: callable
             A function/transform that takes input sample and its target as entry and returns a transformed version
         """
         self.dataset_path = dataset_path
         self.data = data
-        self.load_axis = load_axis
         self.transforms = transforms
+        if load_axis != 'Mxb1' and load_axis != 'Myb1':
+            raise ValueError(f'load_axis must be either Mxb1 or Myb1, got {load_axis}')
+        else:
+            self.load_axis = load_axis
+        self.label_mean = label_mean
+        self.label_std = label_std
 
     def __len__(self) -> int:
         return len(self.data)
@@ -36,21 +52,20 @@ class Should_Dataset(Dataset):
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         input, labels, time = load_input_output_tensor(self.dataset_path, self.data, index, self.load_axis)
         input[::, 1] = np.sin(input[::, 1]*np.pi/180) # convert azimuth axis to sinusodial function
-        
-        label_mean = torch.mean(labels)
-        label_std = torch.std(labels)
-        labels = (labels - label_mean)/label_std # normalize the data
 
+        if self.label_mean is not None and self.label_std is not None:
+            labels = (labels - self.label_mean)/self.label_std # normalize the data
+        
         if self.transforms is not None:
-            return self.transforms(input, labels), time, label_mean, label_std
-        return input, labels, time, label_mean, label_std
+            return self.transforms(input, labels), time
+        return input, labels, time
 
 
 def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, load_axis: str) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Load the input and output tensors from the output file
 
-    parameters:
+    Parameters:
     -----------
     dataset_path: str
         The path to the dataset
@@ -61,7 +76,7 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, l
     load_axis: str
         The axis to load the data
     
-    returns:
+    Returns:
     --------
     input: torch.Tensor
         The input tensor
@@ -93,16 +108,19 @@ def split_dataset(data_list: Iterable, test_size: float, validation_size: float,
     """
     Split the dataset into train, validation, and test set
 
-    parameters:
+    Parameters:
     -----------
-    dataset_path: str
-        The path to the dataset
+    data_list: Iterable
+        List of data files
     test_size: float
         The size of the test set
     validation_size: float
         The size of the validation set
+    random_state: int
+        The random seed for shuffling the data
+        default: 42
 
-    returns:
+    Returns:
     --------
     train_data: Iterable[str]
         The train data files
@@ -125,3 +143,50 @@ def split_dataset(data_list: Iterable, test_size: float, validation_size: float,
                                                   )
 
     return train_data, test_data, validation_data
+
+
+
+def calculate_average_and_std(dataset_path: str, data: Iterable[str], load_axis: str) -> tuple[float, float]:
+    """
+    Calculate the average and standard deviation of all labels in the dataset.
+
+    Parameters:
+    -----------
+    dataset_path: str
+        The path to the dataset
+    data: Iterable[str]
+        List of file names
+    load_axis: str
+        The axis of which the loads will be predicted, calculate the average value over this axis
+
+    Returns:
+    --------
+    average_value: float
+        The average value of the specified column over all files
+    std_value: float
+        The standard deviation of the specified column over all files
+    """
+    total_sum = 0.0
+    total_count = 0
+    all_values = []
+
+    for file_name in data:
+        file_path = os.path.join(dataset_path, file_name)
+        df = pd.read_csv(file_path, sep='\s+', header=None, skiprows=3)
+        
+        if load_axis == 'Mxb1':
+            column_values = df.iloc[:, 3].to_numpy()
+        elif load_axis == 'Myb1':
+            column_values = df.iloc[:, 4].to_numpy()
+        else:
+            raise ValueError(f'load_axis must be either Mxb1 or Myb1, got {load_axis}')
+        total_sum += column_values.sum()
+        total_count += len(column_values)
+        all_values.extend(column_values)
+
+    average_value = total_sum / total_count
+    std_value = np.std(all_values)
+
+    print(f'Calculating average and standard deviation is complete')
+    print(f'training set average: {average_value}, training set standard deviation: {std_value}')
+    return average_value, std_value

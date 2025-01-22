@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from collections.abc import Iterable
 from datetime import date
 
+from openfast_toolbox.postpro import equivalent_load
+
 
 class EarlyStopping:
     def __init__(self, patience: int=5, delta: float=0) -> None:
@@ -29,7 +31,7 @@ class EarlyStopping:
         self.early_stop: bool = False
         self.counter: int = 0
 
-    def __call__(self, val_loss: float, model: nn.Module, save_directory:str) -> None:
+    def __call__(self, val_loss: float, model: nn.Module, save_directory) -> None:
         """
         Calls the EarlyStopping class.
 
@@ -39,8 +41,6 @@ class EarlyStopping:
             The validation loss
         model: torch.nn.Module
             The model to save if an improvement is seen
-        save_directory: str
-            The directory to save the model
         """
         if val_loss > self.best_score - self.delta:
             self.counter += 1
@@ -88,6 +88,7 @@ def train_one_epoch(model: nn.Module,
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
+        output = output * dataloader.dataset.label_std + dataloader.dataset.label_mean
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
@@ -125,8 +126,6 @@ def train(model: nn.Module,
         The optimizer
     n_epochs: int
         The number of epochs to train for
-    save_directory: str
-        The directory to save the model
     device: torch.device
         The device to use for training
     early_stopping: int
@@ -150,6 +149,7 @@ def train(model: nn.Module,
 
     train_loss_history: list = []
     val_loss_history: list = []
+    val_del_history: list = []
 
     # Initialize the early stopping if specified
     if early_stopping >= 0 and isinstance(early_stopping, int):
@@ -164,8 +164,9 @@ def train(model: nn.Module,
         train_loss_history.append(train_epoch_loss)
 
         # Evaluate the model on the validation set
-        val_epoch_loss = evaluate(model, val_dataloader, criterion, device)
+        val_epoch_loss, val_del_error = evaluate(model, val_dataloader, criterion, device)
         val_loss_history.append(val_epoch_loss)
+        val_del_history.append(val_del_error)
 
         # Print the loss
         if epoch % print_freq == 0:
@@ -212,44 +213,76 @@ def evaluate(model: nn.Module,
     model.eval()
     loss = 0
     with torch.no_grad():
-        for data, target, _ in dataloader:
+        for data, target, time in dataloader:
             data, target = data.to(device), target.to(device)
             output = model(data)
+            output = output * dataloader.dataset.label_std + dataloader.dataset.label_mean
             loss += criterion(output, target).item()
-    return loss
+            del_error = calculate_del_error(output, target, time)
+    return loss, del_error
 
 
-def plot_losses(train_loss_history: Iterable, val_loss_history: Iterable) -> None:
+def calculate_del_error(output: torch.Tensor, target: torch.Tensor, time: torch.Tensor, m=10) -> float:
+    """
+    Calculates the damage equivalent load error.
+
+    Parameters:
+    -----------
+    output: torch.Tensor
+        The output from the model
+    target: torch.Tensor
+        The target data
+    time: troch.Tensor
+        The time data
+    m: int
+        The Wohler exponent
+        defualt: 10
+    
+    Returns:
+    --------
+    del_error: float
+        The damage equivalent load error
+    """
+    target_del = equivalent_load(time.numpy(), target.numpy(), m=m)
+    output_del = equivalent_load(time.numpy(), output.numpy(), m=m)
+    return torch.mean(torch.abs(output_del - target_del)).item()
+
+
+def plot_losses(train_loss_history: Iterable[int], 
+                val_loss_history: Iterable[int], 
+                val_del_history: Iterable[int],
+               ) -> None:
     """
     Plots the training and validation losses.
 
     Parameters:
     -----------
-    train_loss_history: Iterable
+    train_loss_history: Iterable[int]
         The history of training losses
-    val_loss_history: Iterable
+    val_loss_history: Iterable[int]
         The history of validation losses
+    val_del_history: Iterable[int]        
+        The history of the validation damage equivalent load error
     """
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
     ax[0].plot(train_loss_history, label='Training Loss')
+    ax[0].plot(val_loss_history, label='Validation Loss')
     ax[0].set_xlabel('Epoch')
     ax[0].set_ylabel('Loss')
-    ax[0].set_title('Training Loss')
+    ax[0].set_title('Loss')
     ax[0].legend()
 
-    ax[1].plot(val_loss_history, label='Validation Loss')
+    ax[1].plot(val_del_history, label='Validation DEL')
     ax[1].set_xlabel('Epoch')
-    ax[1].set_ylabel('Loss')
-    ax[1].set_title('Validation Loss')
+    ax[1].set_ylabel('DEL Error')
+    ax[1].set_title('DEL Mean Absolute Error')
     ax[1].legend()
 
     fig.show()
 
 
 def plot_inference(model: nn.Module, 
-                   dataloader: DataLoader, 
-                   labels_mean: float, 
-                   labels_stdev: float,
+                   dataloader: DataLoader,
                    num_inf: int=1,
                    device: torch.device=torch.device('cpu')
                    ) -> None:
@@ -262,10 +295,6 @@ def plot_inference(model: nn.Module,
         The model to evaluate
     dataloader: torch.utils.data.DataLoader
         The dataloader to plot inference on
-    labels_mean: float
-        The mean of the training labels used to denormalize the data
-    labels_stdev: float
-        The standard deviation of the training labels used to denormalize the data
     num_inf: int
         The number of inferences to plot
         default: 1
@@ -285,8 +314,8 @@ def plot_inference(model: nn.Module,
             
             # Take only the first item in the batch and remove normalization
             time = time[0].to('cpu')
-            target = target[0].to('cpu') * labels_stdev + labels_mean
-            output = output[0].to('cpu') * labels_stdev + labels_mean
+            target = target[0].to('cpu')
+            output = output[0].to('cpu') * dataloader.dataset.label_std + dataloader.dataset.label_mean
             plt.figure()
             plt.plot(time, target, label='True')
             plt.plot(time, output, label='Predicted')

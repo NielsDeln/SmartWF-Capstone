@@ -16,7 +16,7 @@ must_df = pd.DataFrame(columns = columns)
 # Julia
 output_dir = r"C:\Users\Jwoon\Desktop\All must data"
 # Hugo
-output_dir = r"C:\Users\HugoP\OneDrive - Delft University of Technology\Year3\Q2 Capstone AI project\General\Should_dataset\Must_Should_Dataset_rep_3"
+output_dir = r"C:\Users\HugoP\OneDrive - Delft University of Technology\Year3\Q2 Capstone AI project\General\Should_dataset\Must_Should_Dataset_rep_4\tijdelijk 1"
 
 counter = 0
 # Loop through all files in the directory
@@ -53,4 +53,4 @@ for filename in os.listdir(output_dir):
 must_df = must_df.sort_values(by='Windspeed', ascending=True)
 print(must_df)
 
-must_df.to_csv(path_or_buf='..\DEL_must_model_rep_3.csv', sep='\t', index=True, header=True)
+must_df.to_csv(path_or_buf='..\DEL_must_model_rep_4_second_part.csv', sep='\t', index=True, header=True)

@@ -141,6 +141,8 @@ def train(model: nn.Module,
         The history of training losses
     val_loss_history: list
         The history of validation losses
+    val_del_history: list
+        The history of the DEL errors
     """
     model.to(device)
 
@@ -167,7 +169,7 @@ def train(model: nn.Module,
 
         # Print the loss
         if epoch % print_freq == 0:
-            print(f'Training Loss: {train_epoch_loss}\nValidation Loss: {val_epoch_loss}\nvalidation DEL: {val_del_error}')
+            print(f'Training Loss MSE: {train_epoch_loss}\nValidation Loss MSE: {val_epoch_loss}\nvalidation DEL error: {val_del_error}%')
 
         # Save the model if best loss is seen
         if early_stopping >= -1 and isinstance(early_stopping, int):
@@ -180,7 +182,7 @@ def train(model: nn.Module,
             break
     
     stop_condition.load_best_model(model, np.min(val_loss_history), save_directory, dataloaders['validation'])
-    return model, train_loss_history, val_loss_history
+    return model, train_loss_history, val_loss_history, val_del_history
 
 
 def evaluate(model: nn.Module, 
@@ -206,29 +208,32 @@ def evaluate(model: nn.Module,
     --------
     loss: float
         The loss for the evaluation
+    del_error: float
+        Average percentage error in damage equivalent load
     """
     model.eval()
     loss = 0
+    del_errors = []
     with torch.no_grad():
         for data, target, time in dataloader:
             data, target = data.to(device), target.to(device)
             output = model(data)
             output = output * dataloader.dataset.label_std + dataloader.dataset.label_mean
             loss += criterion(output, target).item()
-            del_error = calculate_del_error(output, target, time, m=10)
-    return loss, del_error
+            del_errors.extend(calculate_del_error(output, target, time, m=10))
+    return loss, np.mean(del_errors)
 
 
-def calculate_del_error(output: torch.Tensor, target: torch.Tensor, time: torch.Tensor, m=10) -> float:
+def calculate_del_error(batch_output: torch.Tensor, batch_target: torch.Tensor, batch_time: torch.Tensor, m=10) -> float:
     """
     Calculates the damage equivalent load error.
 
     Parameters:
     -----------
     output: torch.Tensor
-        The output from the model
+        The batch of outputs from the model
     target: torch.Tensor
-        The target data
+        The batch of target data
     time: troch.Tensor
         The time data
     m: int
@@ -237,18 +242,17 @@ def calculate_del_error(output: torch.Tensor, target: torch.Tensor, time: torch.
     
     Returns:
     --------
-    del_error: float
-        The damage equivalent load error
+    del_error: list[floats]
+        A list of percentage errors in DEL over a batch
     """
-    target_dels = []
-    output_dels = []
+    del_errors = []
     
-    for item_target, item_output in zip(target, output):
-        target_del = calculate_del(item_target, time, m)
-        target_dels.append(target_del)
-        output_del = calculate_del(item_output, time, m)
-        output_dels.append(output_del)
-    return np.mean(np.abs(np.array(output_dels) - np.array(target_dels)))
+    for item_target, item_output, item_time in zip(batch_target, batch_output, batch_time):
+        target_del = calculate_del(item_target, item_time, m)
+        output_del = calculate_del(item_output, item_time, m)
+        del_error = np.abs(output_del - target_del)/target_del * 100
+        del_errors.append(del_error)
+    return del_errors
 
 
 def calculate_del(data: torch.Tensor, time: torch.Tensor, m: int, Teq: int=1) -> float:
@@ -270,18 +274,18 @@ def calculate_del(data: torch.Tensor, time: torch.Tensor, m: int, Teq: int=1) ->
     Returns:
     --------
     DEL: float
-        The damage equivalent load
+        The damage equivalent load for one simulation
     """
-    data = data.to('cpu').numpy()
-    time = time.to('cpu').numpy()
-    mean_lst = []
-    count_lst = []
-    for _, mean, count, _, _ in rainflow.extract_cycles(data):
-        mean_lst.append(mean)
-        count_lst.append(count)
+    data = data.to('cpu').numpy().flatten()
+    time = time.to('cpu').numpy().flatten()
+    cycles = rainflow.count_cycles(data, nbins=100)
+
     neq = time[-1]/Teq
-    DELi = np.multiply(mean**m , count) / neq
-    return DELi.sum() ** (1/m)
+    DELi = 0
+    for rng, count in cycles:
+        DELi += rng**m * count / neq
+        
+    return DELi**(1/m)
 
 
 def plot_losses(train_loss_history: Iterable[int], 
@@ -364,3 +368,23 @@ def plot_inference(model: nn.Module,
             count += 1
             if count >= num_inf:
                 break
+
+
+if __name__ == '__main__':
+    import pandas as pd
+    import numpy as np
+    file1 = pd.read_csv(r'c:\Users\niels\Downloads\Dataset\Must_Should_processed\w5.0000_s1.25_0_ms_out_processed.csv', skiprows=2, delim_whitespace=True)
+    target1 = torch.reshape(torch.tensor(file1.iloc[:, 3]), (15001, 1))
+    time1 = torch.reshape(torch.tensor(file1.iloc[:, 0]), (15001, 1))
+
+    file2 = pd.read_csv(r'c:\Users\niels\Downloads\Dataset\Must_Should_processed\w5.1000_s1.25_0_ms_out_processed.csv', skiprows=2, delim_whitespace=True)
+    target2 = torch.reshape(torch.tensor(file2.iloc[:, 4]), (15001, 1))
+    time2 = torch.reshape(torch.tensor(file2.iloc[:, 0]), (15001, 1))
+
+    target = torch.tensor(np.array([target1, target2, target1, target2]))
+    time = torch.tensor(np.array([time1, time2, time1, time2]))
+
+    output = torch.tensor(np.array([np.zeros(shape=target1.shape), np.zeros(shape=target2.shape), np.zeros(shape=target1.shape), np.zeros(shape=target2.shape)]))
+
+    DEL = calculate_del(target2, time2, 10)
+    del_error = calculate_del_error(output, target, time, m=10)

@@ -43,6 +43,7 @@ def plot_data(must_df):
         ax2.grid()
     plt.tight_layout()
 
+
 def plot_label_pred_3D(ground_truth, predictions=None, title:str=None):
     """
     Plots the ground truth and predictions in a 3D scatter plot.
@@ -61,14 +62,14 @@ def plot_label_pred_3D(ground_truth, predictions=None, title:str=None):
     xs1 = ground_truth['Windspeed']
     ys1 = ground_truth['STDeV']
     zs1 = ground_truth.iloc[:,2]
-    ax.scatter(xs1, ys1, zs1, marker='s', label='Data')
+    ax.scatter(xs1, ys1, zs1, marker='x',c='blue', label='Target')
 
     if predictions is not None:
         # PREDICTIONS
         xs2 = predictions['Windspeed']
         ys2 = predictions['STDeV']
         zs2 = predictions.iloc[:,2]
-        ax.scatter(xs2, ys2, zs2, marker='o', label='Predictions')
+        ax.scatter(xs2, ys2, zs2, marker='x',c='black', label='Prediction')
 
     # Set labels and title
     ax.set_xlabel('Windspeed')
@@ -78,6 +79,7 @@ def plot_label_pred_3D(ground_truth, predictions=None, title:str=None):
     
     ax.view_init(elev=20, azim=-122, roll=0)
     ax.legend()
+
 
 def plot_err_3D(ground_truth, 
                  predictions,
@@ -120,6 +122,7 @@ def plot_err_3D(ground_truth,
     ax.view_init(elev=20, azim=-122, roll=0)
     ax.legend()
 
+
 def plot_label_pred_2D(ground_truth, 
                        predictions=None, 
                        title:str=None,
@@ -128,7 +131,6 @@ def plot_label_pred_2D(ground_truth,
                        STDeV:list|str|int=all, 
                        ):
     # Here we plot the 2D scatter plot for the specific STDeV and W_speed value
-
     if STDeV == all:
             STDeV = list(np.arange(0.25,2.75,0.25))
             # STDeV = ground_truth['STDeV'].unique()
@@ -152,34 +154,35 @@ def plot_label_pred_2D(ground_truth,
             if i + j >= len(STDeV):
                 break
             ax = axs[j]
-            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
-            #             (ground_truth['Windspeed'] >= W_min) & 
-            #             (ground_truth['Windspeed'] <= W_max)]
-            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j])]
+            GT_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j])]
+            GT_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
+                                        (ground_truth['Windspeed'] >= W_min) & 
+                                        (ground_truth['Windspeed'] <= W_max)]
             # Labels
-            xs1 = Data_selection['Windspeed']
-            zs1 = Data_selection.iloc[:,2]
-            ax.scatter(xs1, zs1, marker='s', label='Data')
+            xs1 = GT_selection['Windspeed']
+            zs1 = GT_selection.iloc[:,2]
+            ax.scatter(xs1, zs1, marker='x',c='blue', label='Target')
 
             if predictions is not None:
-                # pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
-                #             (predictions['Windspeed'] >= W_min) & 
-                #             (predictions['Windspeed'] <= W_max)]
-                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j])]
+                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
+                                             (predictions['Windspeed'] >= W_min) & 
+                                             (predictions['Windspeed'] <= W_max)]
+                # pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j])]
                 # PREDICTIONS
                 xs2 = pred_selection['Windspeed']
                 zs2 = pred_selection.iloc[:,2]
-                ax.scatter(xs2, zs2, label='Predictions')
+                ax.scatter(xs2, zs2, marker='x',c='black', label='Prediction')
             # Set labels and title
             ax.set_xlabel('Windspeed')
             ax.set_ylabel('Leq')
             ax.set_title(f'STDev={STDeV[i + j]}')
-            # ax.legend()
+            ax.legend()
             ax.grid()
         # Adjust layout
         [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
         fig.subplots_adjust(hspace=0.4)
         plt.suptitle(f'2D Scatter Plot \nLabel and prediction\n{title}\nW_speeds: [{W_min},{W_max}]')
+
 
 def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
     if STDeV == all:
@@ -237,6 +240,7 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
         fig.subplots_adjust(hspace=0.4)
         plt.suptitle(f'2D Scatter Plot, {error_type} error, W_speeds: [{W_min},{W_max}]\n{title}')
 
+
 # Plot the error for the mean of the data. Can be used to plot mean of Windspeed along STDeV or vice versa.
 def plot_mean_error(ground_truth, 
                     predictions, 
@@ -266,13 +270,14 @@ def plot_mean_error(ground_truth,
     plt.legend()
     plt.grid()
 
+
 def plot_label_pred_2D_mean(ground_truth, 
-                       predictions=None, 
-                       title:str=None,
-                       W_min=5, 
-                       W_max=25, 
-                       STDeV:list|str|int=all, 
-                       ):
+                            predictions=None, 
+                            title:str=None,
+                            W_min=5, 
+                            W_max=25, 
+                            STDeV:list|str|int=all, 
+                            ):
     if STDeV == all:
             STDeV = list(np.arange(0.25,2.75,0.25))
             # STDeV = ground_truth['STDeV'].unique()
@@ -302,41 +307,49 @@ def plot_label_pred_2D_mean(ground_truth,
                 break
             ax = axs[j]
 
-            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
-            #             (ground_truth['Windspeed'] >= W_min) & 
-            #             (ground_truth['Windspeed'] <= W_max)]
             
-            GT_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j])]
-            GT_average_selection = ground_truth_average[(ground_truth_average['STDeV'] == STDeV[i + j])]
+            # GT_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j])]
+            GT_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i + j]) & 
+                                        (ground_truth['Windspeed'] >= W_min) & 
+                                        (ground_truth['Windspeed'] <= W_max)]
+            
+            # GT_average_selection = ground_truth_average[(ground_truth_average['STDeV'] == STDeV[i + j])]
+            GT_average_selection = ground_truth_average[(ground_truth_average['STDeV'] == STDeV[i + j]) & 
+                                                        (ground_truth_average['Windspeed'] >= W_min) & 
+                                                        (ground_truth_average['Windspeed'] <= W_max)]
             # Labels
             xs1 = GT_selection['Windspeed']
             ys1 = GT_selection.iloc[:,2]
-            ax.scatter(xs1, ys1, marker='s', label='Ground Truth')
+            ax.scatter(xs1, ys1, marker='x',c='blue', label='Target')
 
             # Average of labels
             xs2 = GT_average_selection['Windspeed'].unique()
             ys2 = GT_average_selection.iloc[:,2]
-            ax.scatter(xs2,ys2, marker='x', label='Average Ground Truth', color='r')
+            ax.scatter(xs2,ys2, marker='>',c='orange', label='Targets average')
 
             # Predictions
             if predictions is not None:
-                # pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
-                #             (predictions['Windspeed'] >= W_min) & 
-                #             (predictions['Windspeed'] <= W_max)]
-                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j])]
-                pred_selection_average = predictions_average[(predictions_average['STDeV'] == STDeV[i + j])]
+                pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j]) & 
+                            (predictions['Windspeed'] >= W_min) & 
+                            (predictions['Windspeed'] <= W_max)]
+                # pred_selection = predictions[(predictions['STDeV'] == STDeV[i + j])]
 
+                # pred_selection_average = predictions_average[(predictions_average['STDeV'] == STDeV[i + j])]
+                pred_selection_average = predictions_average[(predictions_average['STDeV'] == STDeV[i + j]) & 
+                                                             (predictions_average['Windspeed'] >= W_min) & 
+                                                             (predictions_average['Windspeed'] <= W_max)]
                 # PREDICTIONS
                 xs3 = pred_selection['Windspeed']
                 ys3 = pred_selection.iloc[:,2]
-                ax.scatter(xs3, ys3, marker='o', label='Predictions')
+                ax.scatter(xs3, ys3, marker='x',c='black', label='Prediction')
 
                 # Average of predictions
                 xs4 = pred_selection_average['Windspeed'].unique()
                 ys4 = pred_selection_average.iloc[:,2]
-                ax.scatter(xs4,ys4, marker='2', label='Average Predictions', color='y')
+                ax.scatter(xs4,ys4, marker='>',c='yellow', label='Predictions average')
             
-
+                print("xs3:", len(xs3))
+                print("xs4:",len(xs4))
             # Set labels and title
             ax.set_xlabel('Windspeed')
             ax.set_ylabel('Leq')
@@ -347,6 +360,7 @@ def plot_label_pred_2D_mean(ground_truth,
         [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
         fig.subplots_adjust(hspace=0.4)
         plt.suptitle(f'2D Scatter Plot \nLabel and prediction\n{title}\nW_speeds: [{W_min},{W_max}]')
+
 
 # Mean of all errors
 def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
@@ -364,15 +378,22 @@ def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W
     else:
         raise ValueError('STDeV must be either a list, an integer or "all"')
 
-    label = ground_truth.iloc[:, 2]
+    target = ground_truth.iloc[:, 2]
+    target_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
     prediction = predictions.iloc[:, 2]
-    if error_type == 'absolute':
-        error = abs((prediction - label))
-    elif error_type == 'relative':
-        error = abs((prediction - label))/ label
-    elif error_type == 'percentage':
-        error = abs((prediction - label))/ label * 100
+    predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+    print(prediction)
 
+    if error_type == 'absolute':
+        error = abs((prediction - target))
+    elif error_type == 'relative':
+        error = abs((prediction - target))/ target
+    elif error_type == 'percentage':
+        error = abs((prediction - target))/ target * 100
+    elif error_type == 'pred_wrt_mean':
+        error = abs((predictions_average['Leq'] - target_average['Leq'])) / target_average['Leq']
+    
+    
     predictions['error'] = error
     error_average = predictions.groupby(['Windspeed', 'STDeV'])['error'].mean().reset_index()
 

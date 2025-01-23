@@ -96,22 +96,35 @@ def plot_err_3D(ground_truth,
     None
     """
     # Scatterplot with all predictions combined
+    target = ground_truth.iloc[:, 2]
+    prediction = predictions.iloc[:, 2]
+
+    # Calculate average for each unique combination
+    target_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean()
+
+    # Store each average at the corresponding 'Windspeed'-'STDeV' combination. (sometimes multiple times)
+    ground_truth['average_Leq'] = ground_truth.apply(lambda row: target_average.loc[(row['Windspeed'], row['STDeV'])], axis=1)
+    # print(ground_truth)
+    if predictions is not None:
+        predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+    
+    if error_type == 'absolute':
+        error = abs((prediction - target))
+    elif error_type == 'relative':
+        error = abs((prediction - target))/ target
+    elif error_type == 'percentage':
+        error = abs((prediction - target))/ target * 100
+    elif error_type == 'pred_wrt_mean':
+        error = abs(prediction - ground_truth['average_Leq']) / ground_truth['average_Leq']
+    else:
+        raise "This error_type is not possible"
+    
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     # Relative Error
     xs1 = predictions['Windspeed']
     ys1 = predictions['STDeV']
-    
-    label = ground_truth.iloc[:,2]
-    prediction = predictions.iloc[:,2]
-    if error_type == 'absolute':
-        zs2 = abs(prediction - label)
-    elif error_type == 'relative':
-        zs2 = abs(prediction - label)/label
-    elif error_type == 'percentage':
-        zs2 = abs(prediction - label)/label * 100
-    
-    ax.scatter(xs1, ys1, zs2, marker='o', label=f'{error_type} Error')
+    ax.scatter(xs1, ys1, error, marker='o', label=f'{error_type} Error')
 
     # Set labels and title
     ax.set_xlabel('Windspeed')
@@ -198,7 +211,34 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
                 raise ValueError('STDeV must be in the range [0.25, 2.5] with steps of 0.25')
     else:
         raise ValueError('STDeV must be either a list, an integer or "all"')
+    
+    target = ground_truth.iloc[:, 2]
+    prediction = predictions.iloc[:, 2]
 
+    # Calculate average for each unique combination
+    target_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean()
+
+    # Store each average at the corresponding 'Windspeed'-'STDeV' combination. (sometimes multiple times)
+    ground_truth['average_Leq'] = ground_truth.apply(lambda row: target_average.loc[(row['Windspeed'], row['STDeV'])], axis=1)
+    # print(ground_truth)
+    if predictions is not None:
+        predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+    
+    if error_type == 'absolute':
+        error = abs((prediction - target))
+    elif error_type == 'relative':
+        error = abs((prediction - target))/ target
+    elif error_type == 'percentage':
+        error = abs((prediction - target))/ target * 100
+    elif error_type == 'pred_wrt_mean':
+        # This is the error of each prediction wrt the average of target values with similar inputs
+        error = abs(prediction - ground_truth['average_Leq']) / ground_truth['average_Leq']
+    else:
+        raise "This error_type is not possible"
+    
+    predictions['error'] = error
+    error_average = predictions.groupby(['Windspeed', 'STDeV'])['error'].mean().reset_index()
+    
     for i in range(0, len(STDeV), 6):
         fig, axs = plt.subplots(3, 2, figsize=(20, 20))
         axs = axs.flatten()
@@ -206,29 +246,18 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
             if i + j >= len(STDeV):
                 break
             ax = axs[j]
-            # Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i]) &
-            #                             (ground_truth['Windspeed'] >= W_min) &
-            #                             (ground_truth['Windspeed'] <= W_max)]
+            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i+j]) &
+                                        (ground_truth['Windspeed'] >= W_min) &
+                                        (ground_truth['Windspeed'] <= W_max)]
 
-            # pred_selection = predictions[(predictions['STDeV'] == STDeV[i]) &
-            #                             (predictions['Windspeed'] >= W_min) &
-            #                             (predictions['Windspeed'] <= W_max)]
-            Data_selection = ground_truth[(ground_truth['STDeV'] == STDeV[i+j])]
-            pred_selection = predictions[(predictions['STDeV'] == STDeV[i+j])]
-
+            pred_selection = predictions[(predictions['STDeV'] == STDeV[i+j]) &
+                                        (predictions['Windspeed'] >= W_min) &
+                                        (predictions['Windspeed'] <= W_max)]
+            
             xs1 = pred_selection['Windspeed']
             ys1 = pred_selection['STDeV']
-            label = Data_selection.iloc[:, 2]
-            prediction = pred_selection.iloc[:, 2]
-
-            if error_type == 'absolute':
-                zs2 = abs(prediction - label)
-            elif error_type == 'relative':
-                zs2 = abs(prediction - label) / label
-            elif error_type == 'percentage':
-                zs2 = abs(prediction - label) / label * 100
-
-            ax.scatter(xs1, zs2, marker='o', label=f'{error_type} Error')
+            error = pred_selection['error']
+            ax.scatter(xs1, error, marker='o', label=f'{error_type} Error')
 
             ax.set_xlabel('Windspeed')
             ax.set_ylabel(f'{error_type} Error')
@@ -379,11 +408,17 @@ def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W
         raise ValueError('STDeV must be either a list, an integer or "all"')
 
     target = ground_truth.iloc[:, 2]
-    target_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
     prediction = predictions.iloc[:, 2]
-    predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
-    print(prediction)
 
+    # Calculate average for each unique combination
+    target_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean()
+
+    # Store each average at the corresponding 'Windspeed'-'STDeV' combination. (sometimes multiple times)
+    ground_truth['average_Leq'] = ground_truth.apply(lambda row: target_average.loc[(row['Windspeed'], row['STDeV'])], axis=1)
+    # print(ground_truth)
+    if predictions is not None:
+        predictions_average = predictions.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
+    
     if error_type == 'absolute':
         error = abs((prediction - target))
     elif error_type == 'relative':
@@ -391,14 +426,14 @@ def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W
     elif error_type == 'percentage':
         error = abs((prediction - target))/ target * 100
     elif error_type == 'pred_wrt_mean':
-        error = abs((predictions_average['Leq'] - target_average['Leq'])) / target_average['Leq']
-    
+        # This is the error of each prediction wrt the average of target values with similar inputs
+        error = abs(prediction - ground_truth['average_Leq']) / ground_truth['average_Leq']
+    else:
+        raise "This error_type is not possible"
     
     predictions['error'] = error
     error_average = predictions.groupby(['Windspeed', 'STDeV'])['error'].mean().reset_index()
-
-    ground_truth_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean().reset_index()
-
+    
     for i in range(0, len(STDeV), 6):
         fig, axs = plt.subplots(3, 2, figsize=(20, 20))
         axs = axs.flatten()
@@ -417,8 +452,8 @@ def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W
             error_average_selection = error_average[(error_average['STDeV'] == STDeV[i+j])]
             xs2= error_average_selection['Windspeed']
             ys2 = error_average_selection['error']
-            ax.scatter(xs2, ys2, marker='2', label=f'Average {error_type} Error')
-            
+            ax.scatter(xs2, ys2, marker='2', label=f'Average of {error_type} Error')
+           
             # Set labels and title
             ax.set_xlabel('Windspeed')
             ax.set_ylabel(f'{error_type} Error')
@@ -429,6 +464,10 @@ def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W
         [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
         fig.subplots_adjust(hspace=0.4)
         plt.suptitle(f'2D Scatter Plot, {error_type} error, W_speeds: [{W_min},{W_max}]\n{title}')
+
+
+
+
 
 
 # must_df = pd.read_csv(filepath_or_buffer=r'Models\Must\DEL_must_model.csv', sep='\t')

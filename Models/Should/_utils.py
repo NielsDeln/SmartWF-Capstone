@@ -141,8 +141,6 @@ def train(model: nn.Module,
         The history of training losses
     val_loss_history: list
         The history of validation losses
-    val_del_history: list
-        The history of the DEL errors
     """
     model.to(device)
 
@@ -208,10 +206,9 @@ def evaluate(model: nn.Module,
     --------
     loss: float
         The loss for the evaluation
-    del_error: float
-        Average percentage error in damage equivalent load
     """
     model.eval()
+    model.to(device)
     loss = 0
     del_errors = []
     with torch.no_grad():
@@ -242,8 +239,8 @@ def calculate_del_error(batch_output: torch.Tensor, batch_target: torch.Tensor, 
     
     Returns:
     --------
-    del_error: list[floats]
-        A list of percentage errors in DEL over a batch
+    del_error: list
+        The damage equivalent load error in percentage
     """
     del_errors = []
     
@@ -252,6 +249,7 @@ def calculate_del_error(batch_output: torch.Tensor, batch_target: torch.Tensor, 
         output_del = calculate_del(item_output, item_time, m)
         del_error = np.abs(output_del - target_del)/target_del * 100
         del_errors.append(del_error)
+        
     return del_errors
 
 
@@ -274,7 +272,7 @@ def calculate_del(data: torch.Tensor, time: torch.Tensor, m: int, Teq: int=1) ->
     Returns:
     --------
     DEL: float
-        The damage equivalent load for one simulation
+        The damage equivalent load
     """
     data = data.to('cpu').numpy().flatten()
     time = time.to('cpu').numpy().flatten()
@@ -368,23 +366,3 @@ def plot_inference(model: nn.Module,
             count += 1
             if count >= num_inf:
                 break
-
-
-if __name__ == '__main__':
-    import pandas as pd
-    import numpy as np
-    file1 = pd.read_csv(r'c:\Users\niels\Downloads\Dataset\Must_Should_processed\w5.0000_s1.25_0_ms_out_processed.csv', skiprows=2, delim_whitespace=True)
-    target1 = torch.reshape(torch.tensor(file1.iloc[:, 3]), (15001, 1))
-    time1 = torch.reshape(torch.tensor(file1.iloc[:, 0]), (15001, 1))
-
-    file2 = pd.read_csv(r'c:\Users\niels\Downloads\Dataset\Must_Should_processed\w5.1000_s1.25_0_ms_out_processed.csv', skiprows=2, delim_whitespace=True)
-    target2 = torch.reshape(torch.tensor(file2.iloc[:, 4]), (15001, 1))
-    time2 = torch.reshape(torch.tensor(file2.iloc[:, 0]), (15001, 1))
-
-    target = torch.tensor(np.array([target1, target2, target1, target2]))
-    time = torch.tensor(np.array([time1, time2, time1, time2]))
-
-    output = torch.tensor(np.array([np.zeros(shape=target1.shape), np.zeros(shape=target2.shape), np.zeros(shape=target1.shape), np.zeros(shape=target2.shape)]))
-
-    DEL = calculate_del(target2, time2, 10)
-    del_error = calculate_del_error(output, target, time, m=10)

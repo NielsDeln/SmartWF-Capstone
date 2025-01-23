@@ -25,7 +25,7 @@ if __name__ == "__main__":
     }
 
     # Create the dataloader
-    batch_size = 32
+    batch_size = 64
 
     dataloaders = {
         'train': DataLoader(datasets['train'], batch_size=batch_size, shuffle=True, num_workers=4),
@@ -54,14 +54,14 @@ if __name__ == "__main__":
 
     # Define the loss function and optimizer
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.005)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print(f'The specified device is: {device}')
     print(f'The model architecture is:\n{model}')
     
     # Train the model
     save_directory = '/kaggle/working'
-    n_epochs = 10
+    n_epochs = 50
     model, train_losses, validation_losses, validation_dels = train(
         model,                                      
         dataloaders,
@@ -70,14 +70,18 @@ if __name__ == "__main__":
         n_epochs,
         save_directory,
         device=device, 
-        early_stopping=2, 
+        early_stopping=5, 
         print_freq=1,
     )
 
     # Plot the training and validation losses
-    plot_losses(train_losses, validation_losses)
+    plot_losses(train_losses, validation_losses, validation_dels)
+
+    ### FOR IF YOU WANT TO LOAD A DIFFERENT MODEL
+    ## USE CORRESPONDING LOAD AXIS
+    model.load_state_dict(torch.load(f'/kaggle/working/model_{date.today()}_Mxb1.pt', weights_only=True))
 
     # Evaluate the model and plot inference
-    test_loss = evaluate(model, dataloaders['test'], loss_fn, device=device)
-    print(f'The loss over the test set is: {test_loss}')
+    test_loss, test_del_error = evaluate(model, dataloaders['test'], loss_fn, device=device)
+    print(f'The loss over the test set is: {test_loss}\nThe test DEL error is: {test_del_error}')
     plot_inference(model, dataloaders['test'], num_inf=3, device=device)

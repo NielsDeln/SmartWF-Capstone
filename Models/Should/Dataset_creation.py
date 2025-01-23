@@ -52,9 +52,6 @@ class Should_Dataset(Dataset):
     def __getitem__(self, index: int) -> tuple[torch.Tensor, torch.Tensor]:
         input, labels, time = load_input_output_tensor(self.dataset_path, self.data, index, self.load_axis)
         input[::, 1] = np.sin(input[::, 1]*np.pi/180) # convert azimuth axis to sinusodial function
-
-        if self.label_mean is not None and self.label_std is not None:
-            labels = (labels - self.label_mean)/self.label_std # normalize the data
         
         if self.transforms is not None:
             return self.transforms(input, labels), time

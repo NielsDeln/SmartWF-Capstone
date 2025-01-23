@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class Should_model(nn.Module):
     def __init__(self, 
                  input_size: int, 

@@ -18,7 +18,7 @@ def preprocess_dataset(dataset_path: str, columns_keep: Iterable[int]=[0, 1, 12,
     # Load the dataset
     datapoints = os.listdir(dataset_path)
 
-    save_path = os.path.join(dataset_path, 'chunks')
+    save_path = os.path.join(dataset_path, 'preprocessed')
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
@@ -29,7 +29,7 @@ def preprocess_dataset(dataset_path: str, columns_keep: Iterable[int]=[0, 1, 12,
 
         # Load the dataset
         file_path = os.path.join(dataset_path, file)
-        df_data = pd.read_csv(file_path, sep='\s+', header=None, skiprows=6)
+        df_data = pd.read_csv(file_path, sep='\s+', header=None, skiprows=6, low_memory=False)
 
         # Split the dataset into a header and other data
         df_header = df_data.iloc[:2, columns_keep]
@@ -39,9 +39,10 @@ def preprocess_dataset(dataset_path: str, columns_keep: Iterable[int]=[0, 1, 12,
         df_data = pd.concat([df_header, df_data], axis=0)
 
         # Save the data
-        filename = os.path.splitext(file)[0] + '.csv'
+        filename = os.path.splitext(file)[0] + '_processed.csv'
         df_data.to_csv(os.path.join(save_path, filename), sep=' ', index=False)
 
 if __name__ == "__main__":
-    preprocess_dataset('c:/Users/niels/Downloads/Dataset/Must_Should_Dataset_rep_2/Outputs')
+    for dataset_path in [r'C:\Users\niels\Downloads\Dataset\Must_Should_Dataset_rep_4']:
+        preprocess_dataset(dataset_path)
     print('Dataset chunking complete.')

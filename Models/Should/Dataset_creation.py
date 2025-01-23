@@ -92,12 +92,12 @@ def load_input_output_tensor(dataset_path: str, data: Iterable[str], idx: int, l
                      header=None, 
                      skiprows=3)
 
-    input = torch.reshape(torch.tensor(df.iloc[::, [1, 2]].to_numpy(), dtype=torch.float32), (1500, 2))
-    time = torch.reshape(torch.tensor(df.iloc[::, 0].to_numpy(), dtype=torch.float32), (1500, 1))
+    input = torch.reshape(torch.tensor(df.iloc[::, [1, 2]].to_numpy(), dtype=torch.float32), (15001, 2))
+    time = torch.reshape(torch.tensor(df.iloc[::, 0].to_numpy(), dtype=torch.float32), (15001, 1))
     if load_axis == 'Mxb1':
-        output = torch.reshape(torch.tensor(df.iloc[::, 3].to_numpy(), dtype=torch.float32), (1500, 1))
+        output = torch.reshape(torch.tensor(df.iloc[::, 3].to_numpy(), dtype=torch.float32), (15001, 1))
     elif load_axis == 'Myb1':
-        output = torch.reshape(torch.tensor(df.iloc[::, 4].to_numpy(), dtype=torch.float32), (1500, 1))
+        output = torch.reshape(torch.tensor(df.iloc[::, 4].to_numpy(), dtype=torch.float32), (15001, 1))
     else:
         raise ValueError(f'load_axis must be either Mxb1 or Myb1, got {load_axis}')
 
@@ -169,9 +169,18 @@ def calculate_average_and_std(dataset_path: str, data: Iterable[str], load_axis:
     total_sum = 0.0
     total_count = 0
     all_values = []
+    skipped_files = []
+    error_count = 0
 
     for file_name in data:
         file_path = os.path.join(dataset_path, file_name)
+        try:
+            df = pd.read_csv(file_path, sep='\s+', header=None, skiprows=3)
+        except Exception as e:
+            print(f"Error reading {file_path}: {e}")
+            skipped_files.append(file_name)
+            error_count += 1
+            continue
         df = pd.read_csv(file_path, sep='\s+', header=None, skiprows=3)
         
         if load_axis == 'Mxb1':
@@ -187,6 +196,7 @@ def calculate_average_and_std(dataset_path: str, data: Iterable[str], load_axis:
     average_value = total_sum / total_count
     std_value = np.std(all_values)
 
+    print(f'Number of files skipped: {error_count}')
     print(f'Calculating average and standard deviation is complete')
     print(f'training set average: {average_value}, training set standard deviation: {std_value}')
     return average_value, std_value

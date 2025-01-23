@@ -1,10 +1,10 @@
 from Models.Should._utils import *
-from Models.Should.Dataset_processing import *
+from Models.Should.Dataset_creation import *
 from Models.Should.Should_LSTM import *
 
 if __name__ == "__main__":
     # Load the data
-    dataset_path = '/kaggle/input/should-chunks-azimuth/chunks'
+    dataset_path = '/kaggle/input/should-azimuth-complete-simulations/Must_Should_processed'
     file_list = os.listdir(dataset_path)
 
     # Split the data
@@ -12,6 +12,7 @@ if __name__ == "__main__":
 
     # Specify the load axis used
     load_axis = 'Mxb1'
+    # load_axis = 'Myb1'
 
     # Calculate average and standard deviation of training set labels
     train_labels_mean, train_labels_stdev = calculate_average_and_std(dataset_path, train_data, load_axis)
@@ -24,7 +25,7 @@ if __name__ == "__main__":
     }
 
     # Create the dataloader
-    batch_size = 50
+    batch_size = 32
 
     dataloaders = {
         'train': DataLoader(datasets['train'], batch_size=batch_size, shuffle=True, num_workers=4),
@@ -38,7 +39,7 @@ if __name__ == "__main__":
 
     # Create the model
     input_size = 2
-    hidden_size = 16
+    hidden_size = 128
     num_layers = 3
     dropout = 0.2
     proj_size = 1
@@ -53,25 +54,25 @@ if __name__ == "__main__":
 
     # Define the loss function and optimizer
     loss_fn = nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0005)
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     print(f'The specified device is: {device}')
     print(f'The model architecture is:\n{model}')
     
     # Train the model
     save_directory = '/kaggle/working'
-    n_epochs = 20
-    model, train_losses, validation_losses = train(model, 
-                                                dataloaders['train'], 
-                                                dataloaders['validation'],
-                                                loss_fn, 
-                                                optimizer, 
-                                                n_epochs,
-                                                save_directory,
-                                                device=device, 
-                                                early_stopping=3, 
-                                                print_freq=1,
-                                                )
+    n_epochs = 10
+    model, train_losses, validation_losses, validation_dels = train(
+        model,                                      
+        dataloaders,
+        loss_fn, 
+        optimizer, 
+        n_epochs,
+        save_directory,
+        device=device, 
+        early_stopping=2, 
+        print_freq=1,
+    )
 
     # Plot the training and validation losses
     plot_losses(train_losses, validation_losses)
@@ -79,4 +80,4 @@ if __name__ == "__main__":
     # Evaluate the model and plot inference
     test_loss = evaluate(model, dataloaders['test'], loss_fn, device=device)
     print(f'The loss over the test set is: {test_loss}')
-    plot_inference(model, dataloaders['test'], train_labels_mean, train_labels_stdev, num_inf=3, device=device)
+    plot_inference(model, dataloaders['test'], num_inf=3, device=device)

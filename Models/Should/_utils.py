@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from collections.abc import Iterable
 from datetime import date
 
-from openfast_toolbox.postpro import equivalent_load
+import rainflow
 
 
 class EarlyStopping:
@@ -31,7 +31,7 @@ class EarlyStopping:
         self.early_stop: bool = False
         self.counter: int = 0
 
-    def __call__(self, val_loss: float, model: nn.Module, save_directory) -> None:
+    def __call__(self, val_loss: float, model: nn.Module, save_directory, dataloader) -> None:
         """
         Calls the EarlyStopping class.
 
@@ -49,10 +49,10 @@ class EarlyStopping:
         else:
             self.best_score = val_loss
             self.counter = 0
-            torch.save(model.state_dict(), f'{save_directory}/model_{date.today()}_val_loss{val_loss:.3f}.pt')
+            torch.save(model.state_dict(), f'{save_directory}/model_{date.today()}_{dataloader.dataset.load_axis}.pt')
 
-    def load_best_model(self, model: nn.Module, val_loss, save_directory) -> None:
-        model.load_state_dict(torch.load(f'{save_directory}/model_{date.today()}_val_loss{val_loss:.3f}.pt', weights_only=True))
+    def load_best_model(self, model: nn.Module, val_loss, save_directory, dataloader) -> None:
+        model.load_state_dict(torch.load(f'{save_directory}/model_{date.today()}_{dataloader.dataset.load_axis}.pt', weights_only=True))
 
 
 def train_one_epoch(model: nn.Module, 
@@ -99,8 +99,7 @@ def train_one_epoch(model: nn.Module,
 
 
 def train(model: nn.Module, 
-          train_dataloader: DataLoader, 
-          val_dataloader: DataLoader,
+          dataloaders: dict[str, DataLoader], 
           criterion: nn.modules.loss, 
           optimizer: optim, 
           n_epochs: int,
@@ -116,10 +115,8 @@ def train(model: nn.Module,
     -----------
     model: torch.nn.Module
         The model to train
-    train_dataloader: torch.utils.data.DataLoader
-        The dataloader containing the training data
-    val_dataloader: torch.utils.data.DataLoader
-        The dataloader containing the validation data
+    dataloaders: dict
+        The dictionary containing the training and validation dataloaders
     criterion: torch.nn.modules.loss
         The loss function
     optimizer: torch.optim
@@ -160,21 +157,21 @@ def train(model: nn.Module,
         if epoch % print_freq == 0:
             print(f'Epoch {epoch+1}/{n_epochs}:\n------------')
         # Train for one epoch and append the loss to the loss history
-        train_epoch_loss = train_one_epoch(model, train_dataloader, criterion, optimizer, device)
+        train_epoch_loss = train_one_epoch(model, dataloaders['train'], criterion, optimizer, device)
         train_loss_history.append(train_epoch_loss)
 
         # Evaluate the model on the validation set
-        val_epoch_loss, val_del_error = evaluate(model, val_dataloader, criterion, device)
+        val_epoch_loss, val_del_error = evaluate(model, dataloaders['validation'], criterion, device)
         val_loss_history.append(val_epoch_loss)
         val_del_history.append(val_del_error)
 
         # Print the loss
         if epoch % print_freq == 0:
-            print(f'Training Loss {train_epoch_loss}, Validation Loss {val_epoch_loss}')
+            print(f'Training Loss: {train_epoch_loss}\nValidation Loss: {val_epoch_loss}\nvalidation DEL: {val_del_error}')
 
         # Save the model if best loss is seen
         if early_stopping >= -1 and isinstance(early_stopping, int):
-            stop_condition(val_epoch_loss, model, save_directory)
+            stop_condition(val_epoch_loss, model, save_directory, dataloaders['validation'])
         elif early_stopping <= -1 or not isinstance(early_stopping, int):
             raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
         
@@ -182,7 +179,7 @@ def train(model: nn.Module,
             print(f'Early stopping at epoch {epoch+1}. \nModel at epoch {epoch} will be loaded.')
             break
     
-    stop_condition.load_best_model(model, np.min(val_loss_history), save_directory)
+    stop_condition.load_best_model(model, np.min(val_loss_history), save_directory, dataloaders['validation'])
     return model, train_loss_history, val_loss_history
 
 
@@ -218,7 +215,7 @@ def evaluate(model: nn.Module,
             output = model(data)
             output = output * dataloader.dataset.label_std + dataloader.dataset.label_mean
             loss += criterion(output, target).item()
-            del_error = calculate_del_error(output, target, time)
+            del_error = calculate_del_error(output, target, time, m=10)
     return loss, del_error
 
 
@@ -243,9 +240,48 @@ def calculate_del_error(output: torch.Tensor, target: torch.Tensor, time: torch.
     del_error: float
         The damage equivalent load error
     """
-    target_del = equivalent_load(time.numpy(), target.numpy(), m=m)
-    output_del = equivalent_load(time.numpy(), output.numpy(), m=m)
-    return torch.mean(torch.abs(output_del - target_del)).item()
+    target_dels = []
+    output_dels = []
+    
+    for item_target, item_output in zip(target, output):
+        target_del = calculate_del(item_target, time, m)
+        target_dels.append(target_del)
+        output_del = calculate_del(item_output, time, m)
+        output_dels.append(output_del)
+    return np.mean(np.abs(np.array(output_dels) - np.array(target_dels)))
+
+
+def calculate_del(data: torch.Tensor, time: torch.Tensor, m: int, Teq: int=1) -> float:
+    """
+    Calculates the damage equivalent load.
+
+    Parameters:
+    -----------
+    data: torch.Tensor
+        The data to calculate the DEL for
+    time: torch.Tensor
+        The time data
+    m: int
+        The Wohler exponent
+    Teq: int
+        The equivalent time
+        default: 1
+    
+    Returns:
+    --------
+    DEL: float
+        The damage equivalent load
+    """
+    data = data.to('cpu').numpy()
+    time = time.to('cpu').numpy()
+    mean_lst = []
+    count_lst = []
+    for _, mean, count, _, _ in rainflow.extract_cycles(data):
+        mean_lst.append(mean)
+        count_lst.append(count)
+    neq = time[-1]/Teq
+    DELi = np.multiply(mean**m , count) / neq
+    return DELi.sum() ** (1/m)
 
 
 def plot_losses(train_loss_history: Iterable[int], 

@@ -69,16 +69,16 @@ X_val_unique, X_test_unique, y_val_unique, y_test_unique = train_test_split(X_te
 
 # Combine to final datasets
 X_train = pd.concat((X_train_unique, X_train_multiple))
-X_val = pd.concat((X_val_unique, X_test_unique))
+X_val = pd.concat((X_val_unique, X_val_multiple))
 X_test = pd.concat((X_test_unique, X_test_multiple))
 
 y_train = pd.concat((y_train_unique, y_train_multiple))
 y_val = pd.concat((y_val_unique, y_val_multiple))
 y_test = pd.concat((y_test_unique, y_test_multiple))
 
-train = pd.concat((X_train, y_train))
-val = pd.concat((X_val, y_val))
-test = pd.concat((X_test, y_test))
+train = pd.concat((X_train, y_train), axis=1)
+val = pd.concat((X_val, y_val), axis=1)
+test = pd.concat((X_test, y_test), axis=1)
 
 """# To test whether Test wheter train_test_split happend correctly:
 def display_output_in_window(output):
@@ -89,25 +89,27 @@ def display_output_in_window(output):
     text_area.insert(tk.INSERT, output)
     text_area.configure(state='disabled')
 
-# Analyse which samples are in the must_dataframe
-Analyse = must_df.groupby(['Windspeed', 'STDeV']).size().reset_index(name='count')
-Analyse = Analyse.sort_values(['STDeV','count']).to_string() + "\n\n"
-display_output_in_window(Analyse)
+# # Analyse which samples are in the must_dataframe
+# Analyse = must_df.groupby(['Windspeed', 'STDeV']).size().reset_index(name='count')
+# Analyse = Analyse.sort_values(['STDeV','count']).to_string() + "\n\n"
+# display_output_in_window(Analyse)
 
 
-# test_sets = {"Training":X_train_multiple, "Validation": X_val_multiple, "Testing": X_test_multiple}
-# for key, set in test_sets.items():
-#     set_df = pd.DataFrame(set, columns=['Windspeed', 'STDeV'])
-#     set_df = set_df.groupby(['Windspeed', 'STDeV']).size().reset_index(name='count')
-#     output = ""
-#     output += f"Length {key} set: {len(set_df)}\n"
-#     output += set_df.to_string()
-#     output += f"All samples occur 2 times: {(set_df['count']==2).all()}\n"
-#     output += "Combinations which don't occur 1 or 6 times\n"
-#     output += set_df[(set_df['count'] != 1) & (set_df['count'] != 6)].to_string() + "\n\n"
-#     output += "Combinations which do occur 1 or 6 times\n"
-#     output += set_df[(set_df['count'] == 1) & (set_df['count'] == 6)].to_string() + "\n\n"
-#     display_output_in_window(output)
-# window = tk.Tk()
-# window.mainloop()
-# plt.show()"""
+# test_sets = {"Training":train, "Validation": val, "Testing": test}
+# test_sets = {"Training":X_train, "Validation": X_val, "Testing": X_test}
+test_sets = {"Training":y_train, "Validation": y_val, "Testing": y_test}
+for key, set in test_sets.items():
+    set_df = pd.DataFrame(set, columns=['Windspeed', 'STDeV'])
+    set_df = set_df.groupby(['Windspeed', 'STDeV']).size().reset_index(name='count')
+    output = ""
+    output += f"Length {key} set: {len(set_df)}\n"
+    output += set_df.to_string()+"\n"
+    output += f"All samples occur 2 times: {(set_df['count']==2).all()}\n"
+    output += "Combinations which don't occur 1 or 6 times\n"
+    output += set_df[(set_df['count'] != 1) & (set_df['count'] != 6)].to_string() + "\n\n"
+    output += "Combinations which do occur 1 or 6 times\n"
+    output += set_df[(set_df['count'] == 1) | (set_df['count'] == 6)].to_string() + "\n\n"
+    display_output_in_window(output)
+window = tk.Tk()
+window.mainloop()
+plt.show()"""

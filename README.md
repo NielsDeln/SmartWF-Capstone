@@ -6,12 +6,21 @@ This project is part of the TI3165TU Capstone Applied AI Project course as part 
 This repository contains 3 different styles of models, the ```Must```, ```Should``` and ```Could``` model. These models increase in complexity and capabilities 
 
 ### Must
-The ```Must``` model is the most simple, it aims to make basic predictions on the Damage Equivalent Load (DEL) of a wind turbine based on the wind velocity and the standard deviation of the wind.
+The `Must` model is the most simple, it aims to make basic predictions on the Damage Equivalent Load (DEL) of a wind turbine. It uses average wind velocity and the standard deviation of the wind as input.
 
-There are two complete ```Must``` model notebooks. One trying to predict Leq_x and Leq_y. (is Damage Equivalent Load for Root Bending Moment x and y).
+There are two complete `Must` model notebooks trying to predict Leq_x or Leq_y. (this is Damage Equivalent Load for Root Bending Moment x and y).
 Both models use the same traditional AI techniques. A KNN-model, Random Forest and Polynomial SGD.
 
-Both Notebooks use 8 plotfunctions defined in seperate Plot_data.py. These plotfunctions make sure all output graphs have similar layout.
+Both Notebooks use 8 plotfunctions defined in seperate 'Plot_data.py'. These plotfunctions make sure all output graphs have similar layout.
+
+To see our tuning result the following steps should be followed
+1. Open the `Traditional AI Techniques_Leq_x(version 1).ipynb` or `Traditional AI Techniques_Leq_y(version 1).ipynb` from the Must\Traditional_Ai_techniques folder. All outputs should be there already. 
+
+To train a model the following steps should be followed:
+1. Open the `Traditional AI Techniques_Leq_x(version 1).ipynb` or `Traditional AI Techniques_Leq_y(version 1).ipynb` from the Must\Traditional_Ai_techniques folder
+2. Specify the folderpath of the `DEL_must_model_rep_{number}` files.
+3. Choose at the end of each model wich plots are desired. Meaning and effect of input variables can be found in `Plot_data.py`.
+4. Run all cels.
 
 ### Should
 The ```Should``` has increased predictive capabilities, being able to predict a time series of the blade root bending moment of the x- and y-axis in the blade reference system.
@@ -36,6 +45,9 @@ For inference the following steps should be followed:
 ### Could
 
 ## Dataset
+The `Must` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.  
+These inputfiles are used for the openFast simulation software and output variables Timestamp, RootMy1b en RootMx1b are stored. These are the bending moments at the root of balde 1. From these bendingmoments a Damage Equivalent Load (or Load Equivalent, Leq) is calculated using RainFlowCounting algorithm.
+
 The `Should` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.
 
 ## Installation

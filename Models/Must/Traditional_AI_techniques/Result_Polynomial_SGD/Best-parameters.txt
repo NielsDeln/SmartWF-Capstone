@@ -1,1 +1,0 @@
-Best parameters: {'estimator__alpha': 0.01, 'estimator__max_iter': 2000, 'preprocessor__degree': 5}

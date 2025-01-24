@@ -1,1 +1,0 @@
- Best KNN Parameters: {'n_neighbors': 12, 'p': 2, 'weights': 'distance'}

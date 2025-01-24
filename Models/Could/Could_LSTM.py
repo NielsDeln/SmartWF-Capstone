@@ -1,105 +1,84 @@
-from Could_functions import *
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
+import torch.nn.functional as F
+from torch.utils.data import DataLoader, Dataset, Subset
+import numpy as np
+from sklearn.model_selection import train_test_split
+from scipy import interpolate
 
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+from collections.abc import Iterable
+from datetime import date
+import os
+import random
+import math
 
 class CNNFeatureExtractor(nn.Module):
-    def __init__(self, input_channels, feature_dim):
+    def __init__(self, kernel_size, out_channels=1, stride=1):
         super(CNNFeatureExtractor, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(input_channels, 16, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2)
+
+        # Define the convolutional layer
+        self.conv = nn.Conv2d(
+            in_channels=1,  # Single-channel input
+            out_channels=out_channels,  # Number of output channels
+            kernel_size=(kernel_size, kernel_size),  # Kernel size
+            stride=(stride, stride),  # Stride
+            padding=0  # No padding
         )
-        self.fc = nn.Linear(32 * (input_hight // 4) * (input_width // 4), feature_dim)  # Adjust for input size
+        
+        # Define a flattening layer
+        self.flatten = nn.Flatten()  # Flattens the output to a 1D vector
 
     def forward(self, x):
-        batch_size, seq_len, channels, height, width = x.size()
-        x = x.view(batch_size * seq_len, channels, height, width)
-        x = self.conv(x)  # Apply CNN
-        x = x.view(x.size(0), -1)  # Flatten
-        x = self.fc(x)  # Fully connected to feature vector
-        x = x.view(batch_size, seq_len, -1)  # Reshape to sequence format
+        batch_size, seq_len, height, width = x.size()  # Input: [Batch size, sequence length, Height, Width]
+        x = x.view(batch_size * seq_len, 1, height, width)  # Reshape to [B * seq_len, 1, Height, Width]
+        x = self.conv(x)  # Apply convolution: [B * seq_len, out_channels, new_height, new_width]
+        x = x.view(batch_size * seq_len, -1)  # Flatten to [B * seq_len, new_height * new_width]
+        x = x.view(batch_size, seq_len, -1)  # Reshape back to [Batch size, sequence length, feature_dim]
         return x
 
+
 class RNNModel(nn.Module):
-    def __init__(self, feature_dim, hidden_dim, output_dim, num_layers):
+    def __init__(self, feature_dim, hidden_dim, output_dim, num_layers, dropout_prob):
         super(RNNModel, self).__init__()
-        self.lstm = nn.LSTM(feature_dim, hidden_dim, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(feature_dim, hidden_dim, num_layers, batch_first=True, dropout=dropout_prob if num_layers > 1 else 0)
+        self.dropout = nn.Dropout(dropout_prob)
         self.fc = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
         x, _ = self.lstm(x)  # LSTM layer
+        x = self.dropout(x)  # Apply dropout to the LSTM outputs
         x = self.fc(x)  # Fully connected layer for predictions
         return x
 
+
+
 # Combine CNN and RNN into a single model
 class WindTurbineLoadPredictor(nn.Module):
-    def __init__(self, input_channels, feature_dim, hidden_dim, output_dim, num_layers):
+    def __init__(self, hidden_dim, output_dim, num_layers, kernel_size, out_channels, stride, input_height, input_width, dropout_prob, angle_dim=1):
         super(WindTurbineLoadPredictor, self).__init__()
-        self.cnn = CNNFeatureExtractor(input_channels, feature_dim)
-        self.rnn = RNNModel(feature_dim, hidden_dim, output_dim, num_layers)
+        self.cnn = CNNFeatureExtractor(kernel_size, out_channels, stride)
 
-    def forward(self, x):
-        x = self.cnn(x)  # Extract spatial features
-        x = self.rnn(x)  # Model temporal dependencies
+        # Dynamically calculate the CNN output feature dimension
+        dummy_input = torch.zeros(1, 1, input_height, input_width)  # Example input: [Batch size, Channels, Height, Width]
+        dummy_output = self.cnn.conv(dummy_input)  # Apply only the CNN convolution
+        cnn_feature_dim = dummy_output.numel()  # Total elements in the CNN output per sample
+
+        # Initialize the RNN with the calculated feature_dim + angle_dim
+        self.rnn = RNNModel(cnn_feature_dim + angle_dim, hidden_dim, output_dim, num_layers, dropout_prob)
+
+    def forward(self, x, x1):
+        cnn_output = self.cnn(x)  # Extract spatial features
+        seq_len = cnn_output.size(1)
+
+        # Expand and concatenate x1 (scalar feature)
+        x1 = x1.unsqueeze(-1).expand(-1, seq_len, -1)  # Shape: [Batch, seq_len, 1]
+        combined_features = torch.cat((cnn_output, x1), dim=-1)  # Concatenate along the feature axis
+
+        x = self.rnn(combined_features)  # Model temporal dependencies
         return x
 
 
-
-# Example usage
-input_channels = 3          # Number of channels in 2D wind speed field
-input_hight = 33            # Height of the 2D input field
-input_width = 41            # Width of the 2D input field
-feature_dim = 64            # Feature dimension from CNN
-hidden_dim = 128            # Hidden dimension of LSTM
-output_dim = 2              # Output dimension (load value)
-num_layers = 2              # Number of LSTM layers
-seq_len = 150               # Length of the input sequence
-batch_size = 1              # Batch size
-
-
-'''
-# Example usage
-# Instantiate the model
-model = WindTurbineLoadPredictor(input_channels, feature_dim, hidden_dim, output_dim, num_layers)
-
-# Example input (batch_size, seq_len, input_channels, height, width)
-input_data = torch.randn(batch_size, seq_len, input_channels, input_hight, input_width)
-
-# Forward pass
-output = model(input_data)
-print("Output shape:", output.shape)  # Expected: (batch_size, seq_len, output_dim)
-
-#Calculate total number of learnable parameters
-total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-print(f"Total learnable parameters: {total_params}")
-
-
-# Example Training
-# Hyperparameters
-num_epochs = 5
-learning_rate = 0.001
-batch_size = 8
-
-# Example data (replace with your actual data)
-num_samples = 40
-inputs = torch.randn(num_samples, seq_len, input_channels, input_hight, input_width)  # Random data
-targets = torch.randn(num_samples, seq_len, output_dim)  # Random targets
-
-# DataLoader
-dataset = WindTurbineDataset(inputs, targets)
-dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-
-# Model, loss function, and optimizer
-model = WindTurbineLoadPredictor(input_channels, feature_dim, hidden_dim, output_dim, num_layers)
-criterion = nn.MSELoss()  # Mean Squared Error for regression
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
-train(model, dataloader, criterion, optimizer, num_epochs)
-'''
+print("Defining model completed.")

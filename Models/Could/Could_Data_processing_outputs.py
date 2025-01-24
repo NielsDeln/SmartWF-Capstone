@@ -1,38 +1,55 @@
-import openfast_toolbox
 import os
 import numpy as np
+import openfast_toolbox
 
-# Input and output directories
-input_directory = 'vtest/Outputs'
-output_directory = 'numpy_data/Outputs'
-columns_to_save = ['Time', 'RootMxb1', 'RootMyb1']
+#stop #remove before running
+
+# Directories
+openfast_output_dir = 'dataset2_original/Outputs'
+processed_data_dir = 'dataset2/Outputs'
 
 # Ensure the output directory exists
-os.makedirs(output_directory, exist_ok=True)
+os.makedirs(processed_data_dir, exist_ok=True)
 
-# Iterate through files in the input directory
-for file in os.listdir(input_directory):  # List all files in the directory
-    if file.endswith('.out'):  # Check if the file has a .out extension
-        file_path = os.path.join(input_directory, file)  # Create the full path
+# Step 1: Convert OpenFAST output to NumPy arrays and process
+columns_to_save = ['Time', 'RootMxb1', 'RootMyb1', 'B1Azimuth', 'B1Pitch']
+frequency = 25  # Herz
+time_to_remove = 60  # seconds
+rows_to_remove = time_to_remove * frequency
+
+
+count=0
+for file in os.listdir(openfast_output_dir):
+    if file.endswith('.out'):
+        file_path = os.path.join(openfast_output_dir, file)
         outputfile = openfast_toolbox.FASTOutputFile(file_path)
         df = outputfile.toDataFrame()
-        
+
         # Process column names
         colNames = df.columns
         renameDict = {}
         unitsDict = {}
-        for colName in colNames: 
+        for colName in colNames:
             name, unit = colName.split("_")
             unit = unit.strip('[]')
             renameDict[colName] = name
             unitsDict[name] = unit
         df = df.rename(columns=renameDict)
-        
+
+
         # Extract desired columns
         data = df[columns_to_save].to_numpy(dtype=np.float32)
-        
-        # Save the NumPy array with the same filename but a .npy extension
-        output_file = os.path.join(output_directory, file.replace('.out', '.npy'))
-        np.save(output_file, data)
-        
-        print(f"Processed and saved: {file} -> {output_file}")
+
+        # Remove initial rows (reduce time dimension)
+        if data.shape[0] >= rows_to_remove:
+            processed_data = data[rows_to_remove:]
+        else:
+            print(f"File {file} has fewer than {rows_to_remove} rows. Skipping.")   
+            continue
+
+        output_file = os.path.join(processed_data_dir, file.replace('.out', '.npy'))        
+        np.save(output_file, processed_data)
+        print(f"Processed and reduced: {file} -> {processed_data_dir}")
+        count+=1
+
+print("Processing {count} files completed.")

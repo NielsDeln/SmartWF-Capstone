@@ -1,12 +1,11 @@
 # General python utility packages
 numpy
 pandas
+scipy
 matplotlib
-tqdm
-
 
 # AI specific packages
-torch
+torch --index-url https://download.pytorch.org/whl/cu118
 scikit-learn
 
 # Other required packages

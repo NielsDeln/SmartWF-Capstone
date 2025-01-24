@@ -6,7 +6,12 @@ This project is part of the TI3165TU Capstone Applied AI Project course as part 
 This repository contains 3 different styles of models, the ```Must```, ```Should``` and ```Could``` model. These models increase in complexity and capabilities 
 
 ### Must
-The ```Must``` model is the most simple, it aims to make basic predictions on the Damage Equivalent Load (DEL) of a wind turbine based on the wind velocity and the standard deviation of the wind
+The ```Must``` model is the most simple, it aims to make basic predictions on the Damage Equivalent Load (DEL) of a wind turbine based on the wind velocity and the standard deviation of the wind.
+
+There are two complete ```Must``` model notebooks. One trying to predict Leq_x and Leq_y. (is Damage Equivalent Load for Root Bending Moment x and y).
+Both models use the same traditional AI techniques. A KNN-model, Random Forest and Polynomial SGD.
+
+Both Notebooks use 8 plotfunctions defined in seperate Plot_data.py. These plotfunctions make sure all output graphs have similar layout.
 
 ### Should
 The ```Should``` has increased predictive capabilities, being able to predict a time series of the blade root bending moment 

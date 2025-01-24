@@ -4,6 +4,10 @@ pandas
 matplotlib
 tqdm
 
+os
+sys
+glob
+importlib
 
 # AI specific packages
 torch

@@ -16,6 +16,21 @@ sys.path.append(path)
 os.chdir(path)
 
 def plot_data(must_df):
+    '''
+    This function plots data from a DataFrame containing wind speed and Leq_x, Leq_y, Leq_res values.
+    Parameters:
+    must_df (pd.DataFrame): A DataFrame containing the following columns:
+        - 'STDeV': Standard deviation values used to subset the data.
+        - 'Windspeed': Wind speed measurements.
+        - 'Leq_x': Sound level measurements in the x direction.
+        - 'Leq_y': Sound level measurements in the y direction.
+        - 'Leq_res': Resultant sound level measurements.
+    Returns:
+    None: This function does not return any value. It generates and displays plots.
+    The function creates two subplots:
+    1. Windspeed vs Leq_x and Leq_y for each unique standard deviation value.
+    2. Windspeed vs Leq_res for each unique standard deviation value.
+    '''
     unique_std = must_df['STDeV'].unique()
     fig, axs = plt.subplots(1, 2, figsize=(15, 5 * len(unique_std)))
     axs = axs.flatten()
@@ -143,7 +158,36 @@ def plot_label_pred_2D(ground_truth,
                        W_max=25, 
                        STDeV:list|str|int=all, 
                        ):
-    # Here we plot the 2D scatter plot for the specific STDeV and W_speed value
+    """
+    Plots a 2D scatter plot of ground truth and prediction data based on specified standard deviation (STDeV) 
+    and wind speed (Windspeed) ranges.
+    Parameters:
+    -----------
+    ground_truth : DataFrame
+        The ground truth data containing 'STDeV' and 'Windspeed' columns.
+    predictions : DataFrame, optional
+        The prediction data containing 'STDeV' and 'Windspeed' columns. Can also be None, if predictions shouldn't be plotted
+    title : str, optional
+        The title of the plot. Default is None.
+    W_min : int, optional
+        The minimum wind speed value to filter the data. Default is 5.
+    W_max : int, optional
+        The maximum wind speed value to filter the data. Default is 25.
+    STDeV : list, str, or int, optional
+        The standard deviation values to filter the data. It can be a list of values, a single integer, 
+        or the string 'all' to include all values in the range [0.25, 2.5] with steps of 0.25. Default is 'all'.
+    Raises:
+    -------
+    ValueError
+        If STDeV is not in the range [0.25, 2.5] with steps of 0.25, or if it is not a list, integer, or 'all'.
+        If the number of STDeV values exceeds 6.
+    Returns:
+    --------
+    None
+        The function generates and displays a 2D scatter plot showing the relation between 
+    """
+        
+    # Here we plot the Leq in a 2D scatter plot for specific STDeV and W_speed values
     if STDeV == all:
             STDeV = list(np.arange(0.25,2.75,0.25))
             # STDeV = ground_truth['STDeV'].unique()
@@ -198,6 +242,39 @@ def plot_label_pred_2D(ground_truth,
 
 
 def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
+    """
+    Plots 2D scatter plots of prediction errors against windspeed for different standard deviation (STDeV) values.
+    Parameters:
+    -----------
+    ground_truth : pd.DataFrame
+        DataFrame containing the ground truth values with columns 'Windspeed', 'STDeV', and 'Leq'.
+    predictions : pd.DataFrame
+        DataFrame containing the predicted values with columns 'Windspeed', 'STDeV', and 'Leq'.
+    title : str, optional
+        Title for the entire plot (default is None).
+    W_min : int, optional
+        Minimum windspeed value to consider for plotting (default is 5).
+    W_max : int, optional
+        Maximum windspeed value to consider for plotting (default is 25).
+    STDeV : list, str, or int, optional
+        List of standard deviation values to consider for plotting, or 'all' to include all values, or a single float value (default is 'all').
+    error_type : str, optional
+        Type of error to plot. Options are 'absolute', 'relative', 'percentage', or 'pred_wrt_mean' (default is 'relative').
+    Raises:
+    -------
+    ValueError
+        If STDeV is not in the range [0.25, 2.5] with steps of 0.25, or if STDeV is not a list, integer, or 'all'.
+        If error_type is not one of the specified options.
+    Returns:
+    --------
+    None
+        The function generates and displays scatter plots but does not return any value.
+    Goal:
+    -----
+    The function aims to visualize the prediction errors for different windspeed and standard deviation combinations, 
+    helping to analyze the performance of the prediction model.
+    """
+    
     if STDeV == all:
         STDeV = list(np.arange(0.25, 2.75, 0.25))
         # STDeV = ground_truth['STDeV'].unique()
@@ -271,7 +348,7 @@ def plot_err_2D(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STD
 
 
 # Plot the error for the mean of the data. Can be used to plot mean of Windspeed along STDeV or vice versa.
-def plot_mean_error(ground_truth, 
+def plot_mean_error(ground_truth,
                     predictions, 
                     title:str=None, 
                     variant='Windspeed',
@@ -280,6 +357,35 @@ def plot_mean_error(ground_truth,
                     STDeV:list|str|int=all,
                     error_type='relative'):
     
+    """
+    Plots the mean error between ground truth and predictions for a given variant.
+    Parameters:
+    -----------
+    ground_truth : pd.DataFrame
+        DataFrame containing the ground truth values. Must include columns 'Windspeed', 'STDeV', and 'Leq'.
+    predictions : pd.DataFrame
+        DataFrame containing the predicted values. Must include columns 'Windspeed', 'STDeV', and 'Leq'.
+    title : str, optional
+        Title of the plot. Default is None.
+    variant : str, optional
+        The variable to group by for plotting. Default is 'Windspeed'.
+    W_min : int, optional
+        Minimum windspeed value to consider. Default is 5.
+    W_max : int, optional
+        Maximum windspeed value to consider. Default is 25.
+    STDeV : list, str, or int, optional
+        Standard deviation values to consider. Default is all.
+    error_type : str, optional
+        Type of error to calculate. Options are 'absolute', 'relative', 'percentage', 'pred_wrt_mean'. Default is 'relative'.
+    Returns:
+    --------
+    None
+        This function does not return any value. It generates and displays a plot.
+    Goal:
+    -----
+    The function calculates the mean error between the ground truth and predictions for a specified variant and plots it.
+    """
+
     label = ground_truth.iloc[:, 2]
     prediction = predictions.iloc[:, 2]
     # Calculate average for each unique combination
@@ -311,13 +417,43 @@ def plot_mean_error(ground_truth,
     plt.grid()
 
 
-def plot_label_pred_2D_mean(ground_truth, 
+def plot_label_pred_2D_mean(ground_truth,
                             predictions=None, 
                             title:str=None,
                             W_min=5, 
                             W_max=25, 
                             STDeV:list|str|int=all, 
                             ):
+    
+    """
+    Plots 2D scatter plots of ground truth and prediction data with mean values.
+    Parameters:
+    -----------
+    ground_truth : pandas.DataFrame
+        DataFrame containing the ground truth data with columns 'Windspeed', 'STDeV', and 'Leq'.
+    predictions : pandas.DataFrame, optional
+        DataFrame containing the prediction data with columns 'Windspeed', 'STDeV', and 'Leq'. Default is None.
+    title : str, optional
+        Title for the plot. Default is None.
+    W_min : int, optional
+        Minimum windspeed value for filtering the data. Default is 5.
+    W_max : int, optional
+        Maximum windspeed value for filtering the data. Default is 25.
+    STDeV : list, str, or int, optional
+        List of STDeV values to filter the data. Can also be 'all' to include all values or a single float value. Default is 'all'.
+    Raises:
+    -------
+    ValueError
+        If STDeV is not in the range [0.25, 2.5] with steps of 0.25 or if the number of STDeV values exceeds 6.
+    Returns:
+    --------
+    None
+        The function generates and displays scatter plots but does not return any value.
+    Goal:
+    -----
+    To visualize the relationship between windspeed and Leq for different STDeV values, comparing ground truth and prediction data, and their respective averages.
+    """
+    
     if STDeV == all:
             STDeV = list(np.arange(0.25,2.75,0.25))
             # STDeV = ground_truth['STDeV'].unique()
@@ -401,6 +537,35 @@ def plot_label_pred_2D_mean(ground_truth,
 
 # Mean of all errors
 def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
+    """
+    Plots the prediction error in 2D scatter plots for different standard deviation (STDeV) values.
+    Parameters:
+    -----------
+    ground_truth : DataFrame
+        The ground truth data containing columns 'Windspeed', 'STDeV', and 'Leq'.
+    predictions : DataFrame
+        The predicted data containing columns 'Windspeed', 'STDeV', and 'Leq'.
+    title : str, optional
+        The title for the plot. Default is None.
+    W_min : int, optional
+        The minimum windspeed to consider for the plot. Default is 5.
+    W_max : int, optional
+        The maximum windspeed to consider for the plot. Default is 25.
+    STDeV : list, str, or int, optional
+        The standard deviation values to consider for the plot. Can be a list of values, a single value, or 'all' to consider all values. Default is 'all'.
+    error_type : str, optional
+        The type of error to plot. Can be 'absolute', 'relative', 'percentage', or 'pred_wrt_mean'. Default is 'relative'.
+    Raises:
+    -------
+    ValueError
+        If STDeV is not in the range [0.25, 2.5] with steps of 0.25.
+        If STDeV is not a list, an integer, or 'all'.
+        If error_type is not one of 'absolute', 'relative', 'percentage', or 'pred_wrt_mean'.
+    Returns:
+    --------
+    None
+    """
+      
     if STDeV == all:
         STDeV = list(np.arange(0.25, 2.75, 0.25))
         # STDeV = ground_truth['STDeV'].unique()

@@ -9,12 +9,29 @@ This repository contains 3 different styles of models, the ```Must```, ```Should
 The ```Must``` model is the most simple, it aims to make basic predictions on the Damage Equivalent Load (DEL) of a wind turbine based on the wind velocity and the standard deviation of the wind
 
 ### Should
-The ```Should``` has increased predictive capabilities, being able to predict a time series of the blade root bending moment 
+The ```Should``` has increased predictive capabilities, being able to predict a time series of the blade root bending moment of the x- and y-axis in the blade reference system.
+
+The inputs are (as a time series):
+- The average wind speed in the x-direction
+- The azimuth angle of the blad for which loads are predicted
+
+The outputs are (as a time series):
+- The loads in direction to the specified axis
+
+To train a model the following steps should be followed:
+1. Open the `training_notebook.ipynb` jupyter notebook in the Should folder of the GitHub.
+2. Specify the `dataset path`, `save directory` and desired `load_axis` variables in the file.
+3. Run all cells.
+
+For inference the following steps should be followed:
+1. Open the `inference_notebook.ipynb` jupyter notebook in the Should folder of the GitHub.
+2. Specify the `dataset_path`, `model_path`, `load_axis` and `test_files` variables in the file.
+3. Run all cells.
 
 ### Could
 
 ## Dataset
-The `Must` and `Should` models are trained using the same dataset. This dataset was created using the openFAST simulator with the Subdyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The complete raw dataset can be made available upon request at n.delnoij@studnet.tudelft.nl , due to the size of the dataset
+The `Should` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.
 
 ## Installation
 The GitHub repo can be cloned to your local envoirnment for use of the functions or any of the supplied trained models with the following command:

@@ -364,18 +364,20 @@ def plot_inference(model: nn.Module,
             # Allow one simulation to be split into mulitple different plots
             split_size = len(time) // num_splits
 
+            fig, axs = plt.subplots(num_splits, 1, figsize=(10, 5 * num_splits))
             for i in range(num_splits):
                 start_idx = i * split_size
                 end_idx = (i + 1) * split_size if i != num_splits - 1 else len(time)
 
-                plt.figure()
-                plt.plot(time[start_idx:end_idx], target[start_idx:end_idx], label='True')
-                plt.plot(time[start_idx:end_idx], output[start_idx:end_idx], label='Predicted')
-                plt.xlabel('Time (s)')
-                plt.ylabel('Bending moment (kN-m)')
-                plt.legend()
-                plt.title(f'Part {i + 1}')
-                plt.show()
+                axs[i].plot(time[start_idx:end_idx], target[start_idx:end_idx], label='True')
+                axs[i].plot(time[start_idx:end_idx], output[start_idx:end_idx], label='Predicted')
+                axs[i].set_xlabel('Time (s)')
+                axs[i].set_ylabel('Bending moment (kN-m)')
+                axs[i].legend()
+                axs[i].set_title(f'Simulation {count+1} Part {i+1}')
+            
+            plt.tight_layout()
+            plt.show()
 
             # Break loop if number of inferences is reached
             count += 1

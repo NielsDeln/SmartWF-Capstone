@@ -43,12 +43,33 @@ For inference the following steps should be followed:
 3. Run all cells.
 
 ### Could
+The ```Could``` model has the same predictive capabilities as the Should model only it can handle a more complex input, namely a timeseries of the windspeeds in the x-direction as a 2d vectorfield.
+
+The inputs are (as a time series):
+- A 2D vector field of the windspeeds in the x-direction
+- The azimuth angle of the blad for which loads are predicted
+
+The outputs are (as a time series):
+- The loads in direction to the specified axis
+
+To train a model the following steps should be followed:
+1. Open the `could-model-lstm.ipynb` jupyter notebook in the Could folder of the GitHub.
+2. Specify the `inptut_data`, `output_data`, `save_model_path` and desired `load_x_or_y` variables in the file.
+3. Run all cells.
+
+For inference the following steps should be followed:
+1. Open the `Could_pretrained_model.ipynb` jupyter notebook in the Could folder of the GitHub.
+2. Specify the `inptut_data`, `output_data`, `save_model_path` and desired `load_x_or_y` variables in the file.
+3. Run all cells.
+
 
 ## Dataset
 The `Must` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.  
 These inputfiles are used for the openFast simulation software and output variables Timestamp, RootMy1b en RootMx1b are stored. These are the bending moments at the root of balde 1. From these bendingmoments a Damage Equivalent Load (or Load Equivalent, Leq) is calculated using RainFlowCounting algorithm.
 
 The `Should` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.
+
+The `Must` dataset was created using the TurbSim wind simulation tool in combination with the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. The dataset was generated for mean wind speeds of 5m/s to 25 m/s. The turbulence intensity was set to 5% for every simulation. The wind shear power law exponent variated from 0 up to 0.3 to simulate the speed gradient in the vertical direction.
 
 ## Installation
 The GitHub repo can be cloned to your local envoirnment for use of the functions or any of the supplied trained models with the following command:

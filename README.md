@@ -1,9 +1,9 @@
 # SmartWF: Learning-Based Secure Wind Farm Control
 
-This project is part of the TI3165TU Capstone Applied AI Project course as part of the Engineering with AI minor offered at TU Delft. The repository is split up into 3 parts, each contaning different models with different specifications and
+This project is part of the TI3165TU Capstone Applied AI Project course as part of the Engineering with AI minor offered at TU Delft. The repository is split up into 3 parts, each contaning different models with different architectures, inptus and complexities. The models aim to predict the loads or damage equivalent loads experienced by turbines in normal operating conditions.
 
 ## Models
-This repository contains 3 different styles of models, the ```Must```, ```Should``` and ```Could``` model. These models increase in complexity and capabilities 
+This repository contains 3 different styles of models, the ```Must```, ```Should``` and ```Could``` model, which increase in complexity and predictive capabilities each using different inputs and giving different outputs.
 
 ### Must
 The `Must` model is the most simple, it aims to make basic predictions on the Damage Equivalent Load (DEL) of a wind turbine. It uses average wind velocity and the standard deviation of the wind as input.
@@ -65,7 +65,7 @@ For inference the following steps should be followed:
 
 ## Dataset
 The `Must` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.  
-These inputfiles are used for the openFast simulation software and output variables Timestamp, RootMy1b en RootMx1b are stored. These are the bending moments at the root of balde 1. From these bendingmoments a Damage Equivalent Load (or Load Equivalent, Leq) is calculated using RainFlowCounting algorithm.
+These inputfiles are used for the openFast simulation software and output variables Timestamp, RootMy1b en RootMx1b are stored. These are the bending moments at the root of balde 1. From these bendingmoments a Damage Equivalent Load (or Load Equivalent, Leq) is calculated using Rainflow counting algorithm.
 
 The `Should` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.
 

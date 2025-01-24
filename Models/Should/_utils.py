@@ -42,16 +42,20 @@ class EarlyStopping:
         model: torch.nn.Module
             The model to save if an improvement is seen
         """
-        if val_loss > self.best_score - self.delta:
-            self.counter += 1
-            if self.counter >= self.patience:
-                self.early_stop = True
-        else:
-            self.best_score = val_loss
-            self.counter = 0
-            torch.save(model.state_dict(), f'{save_directory}/model_{date.today()}_{dataloader.dataset.load_axis}.pt')
+        if self.patience > -1:
+            if val_loss > self.best_score - self.delta:
+                self.counter += 1
+                if self.counter >= self.patience:
+                    self.early_stop = True
+            else:
+                self.best_score = val_loss
+                self.counter = 0
+                self.save_best_model(model, save_directory, dataloader)
+    
+    def save_best_model(self, model: nn.Module, save_directory, dataloader) -> None:
+        torch.save(model.state_dict(), f'{save_directory}/model_{date.today()}_{dataloader.dataset.load_axis}.pt')
 
-    def load_best_model(self, model: nn.Module, val_loss, save_directory, dataloader) -> None:
+    def load_best_model(self, model: nn.Module, save_directory, dataloader) -> None:
         model.load_state_dict(torch.load(f'{save_directory}/model_{date.today()}_{dataloader.dataset.load_axis}.pt', weights_only=True))
 
 
@@ -149,7 +153,9 @@ def train(model: nn.Module,
     val_del_history: list = []
 
     # Initialize the early stopping if specified
-    if early_stopping >= 0 and isinstance(early_stopping, int):
+    if early_stopping < -1 or not isinstance(early_stopping, int):
+        raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
+    elif early_stopping >= -1 and isinstance(early_stopping, int):
         stop_condition = EarlyStopping(patience=early_stopping, delta=0)
 
     # Train the model
@@ -170,16 +176,15 @@ def train(model: nn.Module,
             print(f'Training Loss MSE: {train_epoch_loss}\nValidation Loss MSE: {val_epoch_loss}\nvalidation DEL error: {val_del_error}%')
 
         # Save the model if best loss is seen
-        if early_stopping >= -1 and isinstance(early_stopping, int):
-            stop_condition(val_epoch_loss, model, save_directory, dataloaders['validation'])
-        elif early_stopping <= -1 or not isinstance(early_stopping, int):
-            raise ValueError(f'Early stopping must be an integer in the range [-1, {n_epochs})')
+        stop_condition(val_epoch_loss, model, save_directory, dataloaders['validation'])
         
         if stop_condition.early_stop:
-            print(f'Early stopping at epoch {epoch+1}. \nModel at epoch {epoch} will be loaded.')
+            print(f'Early stopping at epoch {epoch+1}. \nModel at epoch {epoch+1-early_stopping} will be loaded.')
             break
-    
-    stop_condition.load_best_model(model, np.min(val_loss_history), save_directory, dataloaders['validation'])
+        
+    if not stop_condition.early_stop:
+        stop_condition.save_best_model(model, save_directory, dataloaders['validation'])
+    stop_condition.load_best_model(model, save_directory, dataloaders['validation'])
     return model, train_loss_history, val_loss_history, val_del_history
 
 

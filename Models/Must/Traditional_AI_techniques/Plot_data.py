@@ -282,17 +282,28 @@ def plot_mean_error(ground_truth,
     
     label = ground_truth.iloc[:, 2]
     prediction = predictions.iloc[:, 2]
+    # Calculate average for each unique combination
+    target_average = ground_truth.groupby(['Windspeed', 'STDeV'])['Leq'].mean()
+
+    # Store each average at the corresponding 'Windspeed'-'STDeV' combination. (sometimes multiple times)
+    ground_truth['average_Leq'] = ground_truth.apply(lambda row: target_average.loc[(row['Windspeed'], row['STDeV'])], axis=1)
+
     if error_type == 'absolute':
         error = abs((prediction - label))
     elif error_type == 'relative':
         error = abs((prediction - label))/ label
     elif error_type == 'percentage':
         error = abs((prediction - label))/ label * 100
+    elif error_type == 'pred_wrt_mean':
+        # This is the error of each prediction wrt the average of target values with similar inputs
+        error = abs(prediction - ground_truth['average_Leq']) / ground_truth['average_Leq']
+    else:
+        raise "This error_type is not possible"
 
     predictions['error'] = error
     mean_error = predictions.groupby(variant)['error'].mean()
     plt.figure()
-    plt.plot(mean_error.index, mean_error.values, label=f'Mean {error_type} Error')
+    plt.plot(mean_error.index, mean_error.values, label=f'Average {error_type} Error')
     plt.xlabel(variant)
     plt.ylabel(f'Mean {error_type} Error')
     plt.title(f'{title}')
@@ -377,8 +388,6 @@ def plot_label_pred_2D_mean(ground_truth,
                 ys4 = pred_selection_average.iloc[:,2]
                 ax.scatter(xs4,ys4, marker='>',c='yellow', label='Predictions average')
             
-                print("xs3:", len(xs3))
-                print("xs4:",len(xs4))
             # Set labels and title
             ax.set_xlabel('Windspeed')
             ax.set_ylabel('Leq')
@@ -389,7 +398,6 @@ def plot_label_pred_2D_mean(ground_truth,
         [fig.delaxes(ax) for ax in axs.flatten() if not ax.has_data()]
         fig.subplots_adjust(hspace=0.4)
         plt.suptitle(f'2D Scatter Plot \nLabel and prediction\n{title}\nW_speeds: [{W_min},{W_max}]')
-
 
 # Mean of all errors
 def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W_max=25, STDeV:list|str|int=all, error_type='relative'):
@@ -448,11 +456,12 @@ def plot_pred_error_2D_mean(ground_truth, predictions, title:str=None,W_min=5, W
             ys1 = error_selection['error']
             ax.scatter(xs1, ys1, marker = 'o', label=f"{error_type} error")
 
-            # Average of error
-            error_average_selection = error_average[(error_average['STDeV'] == STDeV[i+j])]
-            xs2= error_average_selection['Windspeed']
-            ys2 = error_average_selection['error']
-            ax.scatter(xs2, ys2, marker='2', label=f'Average of {error_type} Error')
+            if error_type != 'pred_wrt_mean':
+                # Average of error
+                error_average_selection = error_average[(error_average['STDeV'] == STDeV[i+j])]
+                xs2= error_average_selection['Windspeed']
+                ys2 = error_average_selection['error']
+                ax.scatter(xs2, ys2, marker='2', label=f'Average of {error_type} Error')
            
             # Set labels and title
             ax.set_xlabel('Windspeed')

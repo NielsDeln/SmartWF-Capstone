@@ -1,0 +1,13 @@
+# General python utility packages
+numpy
+pandas
+matplotlib
+tqdm
+
+
+# AI specific packages
+torch
+scikit-learn
+
+# Other required packages
+rainflow

@@ -14,14 +14,22 @@ The ```Should``` has increased predictive capabilities, being able to predict a 
 ### Could
 
 ## Dataset
+The `Must` and `Should` models are trained using the same dataset. This dataset was created using the openFAST simulator with the Subdyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The complete raw dataset can be made available upon request at n.delnoij@studnet.tudelft.nl , due to the size of the dataset
 
 ## Installation
+The GitHub repo can be cloned to your local envoirnment for use of the functions or any of the supplied trained models with the following command:
 
-The GitHub repo can easily be cloned to your local envoirnment for use of the functions or any of the trained models
-
-```bash
+```shell
   git clone https://github.com/NielsDeln/SmartWF-Capstone
 ```
 ### Required Packages
+All packages required for training and performing inference of the model in this repo are stated in ```requirements.txt```. They can be installed as follows:
+```shell
+  pip install -r requirements.txt
+```
 
-    
+This requires that the command is exectued in the same directory as the location of `requirements.txt`
+
+The openFAST toolbox is only required for editing the dataset and for the calcualtion of damage equivalent loads for the `Must` model. This has already been done for the existing dataset.
+
+The openFAST toolbox can it's installation procedure can be found on it's GitHub repo `https://github.com/OpenFAST/openfast_toolbox`.

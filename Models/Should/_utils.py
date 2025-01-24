@@ -327,6 +327,7 @@ def plot_losses(train_loss_history: Iterable[int],
 def plot_inference(model: nn.Module, 
                    dataloader: DataLoader,
                    num_inf: int=1,
+                   num_splits: int=3,
                    device: torch.device=torch.device('cpu')
                    ) -> None:
     """
@@ -359,13 +360,22 @@ def plot_inference(model: nn.Module,
             time = time[0].to('cpu')
             target = target[0].to('cpu')
             output = output[0].to('cpu') * dataloader.dataset.label_std + dataloader.dataset.label_mean
-            plt.figure()
-            plt.plot(time, target, label='True')
-            plt.plot(time, output, label='Predicted')
-            plt.xlabel('Time (s)')
-            plt.ylabel('Bending moment (kN-m)')
-            plt.legend()
-            plt.show()
+
+            # Allow one simulation to be split into mulitple different plots
+            split_size = len(time) // num_splits
+
+            for i in range(num_splits):
+                start_idx = i * split_size
+                end_idx = (i + 1) * split_size if i != num_splits - 1 else len(time)
+
+                plt.figure()
+                plt.plot(time[start_idx:end_idx], target[start_idx:end_idx], label='True')
+                plt.plot(time[start_idx:end_idx], output[start_idx:end_idx], label='Predicted')
+                plt.xlabel('Time (s)')
+                plt.ylabel('Bending moment (kN-m)')
+                plt.legend()
+                plt.title(f'Part {i + 1}')
+                plt.show()
 
             # Break loop if number of inferences is reached
             count += 1

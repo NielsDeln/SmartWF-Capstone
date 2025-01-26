@@ -69,7 +69,7 @@ These inputfiles are used for the openFast simulation software and output variab
 
 The `Should` dataset was created using the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. Dataset was generated for wind speeds of 5 m/s to 25 m/s. To simulate turbulent wind a standard deviation of 0.25 m/s to 2.50 m/s was used. The windflow is assumed to be uniform through space while varying through time, this means that turbulent effects or wind shear are not considered.
 
-The `Must` dataset was created using the TurbSim wind simulation tool in combination with the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. The dataset was generated for mean wind speeds of 5m/s to 25 m/s. The turbulence intensity was set to 5% for every simulation. The wind shear power law exponent variated from 0 up to 0.3 to simulate the speed gradient in the vertical direction.
+The `Could` dataset was created using the TurbSim wind simulation tool in combination with the openFAST simulator with the Servodyn, Aerodyn and Elastodyn modules installed. The dataset was generated for mean wind speeds of 5m/s to 25 m/s. The turbulence intensity was set to 5% for every simulation. The wind shear power law exponent variated from 0 up to 0.3 to simulate the speed gradient in the vertical direction.
 
 ## Installation
 The GitHub repo can be cloned to your local envoirnment for use of the functions or any of the supplied trained models with the following command:
